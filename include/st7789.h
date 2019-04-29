@@ -55,9 +55,9 @@ public:
 
         write_cmd(SLPOUT);                          // stop sleeping (in case we were)
         write_cmd(NORON);                           // normal-on
-        write_cmd(MADCTL, 0x08);                    // RGB order
+        write_cmd(MADCTL, 0x00);                    // RGB order
         write_cmd(COLMOD, 0x55);                    // 65k RGB & 16 bits per pixel
-        write_cmd(LCMCTRL, 0x04);                   // reverse source output order
+        write_cmd(LCMCTRL, 0x2c);                   // reverse source output order
         write_cmd(CASET, 0, 0, 0, TFT_WIDTH - 1);   // column address set
         write_cmd(RASET, 0, 0, 0, TFT_HEIGHT - 1);  // row address set
         write_cmd(DISPON);                          // display-on
@@ -66,25 +66,29 @@ public:
         clear();
     }
 
-    static void clear()
+    static void clear(uint16_t color = 0)
     {
+        set_col_addr(0, width() - 1);
+        set_row_addr(0, height() - 1);
         write_cmd(RAMWR);                           // write pixel data
-        for (uint32_t i = 0; i < 240*240; ++i)
-            dev::write(static_cast<uint16_t>(0));
+        for (uint32_t i = 0; i < width()*height(); ++i)
+            dev::write(static_cast<uint16_t>(color));
     }
 
-    static inline void ram_write()
+    static inline void start() { write_cmd(RAMWR); }
+
+    static inline void start_at(uint16_t c0, uint16_t cn, uint16_t r0, uint16_t rn)
     {
-        write_cmd(RAMWR);                           // write pixel data from origin
+        write_cmd(RAMWR);
     }
 
-    static inline void write(uint16_t x)
-    {
-        dev::write(x);                                     // 16-bit RGB data
-    }
+    static inline void write(uint16_t x) { dev::write(x); }
 
-    static constexpr uint8_t width() { return TFT_WIDTH; }
-    static constexpr uint8_t height() { return TFT_HEIGHT; }
+    static constexpr uint16_t width() { return TFT_WIDTH; }
+    static constexpr uint16_t height() { return TFT_HEIGHT; }
+
+    static void set_col_addr(uint8_t c0, uint8_t cn) { write_cmd(CASET, 0, c0, 0, cn); }
+    static void set_row_addr(uint8_t r0, uint8_t rn) { write_cmd(RASET, 0, r0, 0, rn); }
 
 private:
     typedef spi::spi_t<SPI, SCL, SDA>   dev;

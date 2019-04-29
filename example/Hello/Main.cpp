@@ -41,7 +41,7 @@ void loop()
             led_b::toggle();
     }
 
-    for (size_t k = 0; k < 8; ++k)
+    for (size_t k = 0; k < 1; ++k)
     {
         uint16_t pixel;
 
@@ -59,14 +59,24 @@ void loop()
 
         pixel = swap_bytes(pixel);
 
-        probe::set();                                   // to measure frame rate
-        display::ram_write();
+        display::clear(swap_bytes(from_rgb(255, 0, 0)));
         probe::clear();
-
-        for (uint32_t i = 0; i < 240*240; ++i)
-            display::write(pixel);
 
         //sys_tick::delay_ms(250);
     }
+
+    display::set_col_addr(50, 59);
+    display::set_row_addr(50, 59);
+    display::start();
+
+    for (uint16_t i = 0; i < 100; ++i)
+    {
+        probe::set();                                   // to measure frame rate
+        display::write(0);
+        probe::clear();
+        sys_tick::delay_ms(1);
+    }
+
+    sys_tick::delay_ms(1000);
 }
 
