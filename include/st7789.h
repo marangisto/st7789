@@ -217,7 +217,7 @@ class text_renderer_t
 {
 public:
     text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
-        : m_font(font), m_fg(color2st7789(fg)), m_bg(color2st7789(bg)) {}
+        : m_font(font), m_fg(color2st7789(fg)), m_bg(color2st7789(bg)), m_c(0), m_r(0) {}
 
     void set_pos(uint16_t c, uint16_t r)
     {
@@ -250,6 +250,13 @@ public:
     {
         while (*s)
             write(*s++);
+    }
+
+    void writeln(const char *s)
+    {
+        write(s);
+        m_c = 0;
+        m_r += 20;  // FIXME: font height
     }
 
 private:

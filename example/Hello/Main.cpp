@@ -53,8 +53,21 @@ void loop(const font_t& ft)
 
     text_renderer_t<display> txr(ft, color::black, color::yellow);
 
-    txr.set_pos(50, 100);
-    txr.write("Hello World!");
+    static const char *lines[] =
+        { ""    // FIXME: we need to start at font height!
+        , "Julius Caesar is our travel"
+        , "guide as he takes us through"
+        , "his murderous subjugation of"
+        , "the native Celtic tribal"
+        , "peoples of ancient Gaul."
+        , "It sounds vaguely like other,"
+        , "recent European colonial"
+        , "conquests until the natives"
+        , "nearly win."
+        };
+
+    for (uint8_t i = 0; i < sizeof(lines) / sizeof(*lines); ++i)
+        txr.writeln(lines[i]);
 
     for (;;);   // stop here forever!
 }
