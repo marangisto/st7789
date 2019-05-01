@@ -26,6 +26,13 @@ static inline constexpr color_t to_color(uint8_t r, uint8_t g, uint8_t b)
          ;
 }
 
+static inline void to_rgb(color_t c, uint16_t& r, uint16_t& g, uint16_t& b)
+{
+    r = c >> 16;
+    g = (c >> 8) & 0xff;
+    b = c & 0xff;
+}
+
 namespace color             // FIXME: color library!
 {
 static const color_t black = to_color(0, 0, 0);
@@ -34,7 +41,7 @@ static const color_t green = to_color(0, 255, 0);
 static const color_t blue = to_color(0, 0, 255);
 static const color_t magenta = to_color(255, 0, 255);
 static const color_t cyan = to_color(0, 255, 255);
-static color_t yellow = to_color(255, 255, 0);
+static const color_t yellow = to_color(255, 255, 0);
 static const color_t white = to_color(255, 255, 255);
 } // color
 
@@ -59,6 +66,20 @@ __attribute__((always_inline))
 static inline uint16_t color2st7789(color_t c)
 {
     return swap_bytes(st7899_from_rgb((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff));
+}
+
+static inline color_t interpolate_color(color_t bg, color_t fg, uint16_t x)
+{
+    uint16_t rb, gb, bb, rf, gf, bf;
+
+    to_rgb(bg, rb, gb, bb);
+    to_rgb(fg, rf, gf, bf);
+
+    return to_color
+        ( (rb * (256 - x) + rf * x) >> 8
+        , (gb * (256 - x) + gf * x) >> 8
+        , (bb * (256 - x) + bf * x) >> 8
+        );
 }
 
 template
@@ -217,7 +238,7 @@ class text_renderer_t
 {
 public:
     text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
-        : m_font(font), m_fg(color2st7789(fg)), m_bg(color2st7789(bg)), m_c(0), m_r(0) {}
+        : m_font(font), m_fg(fg), m_bg(bg), m_c(0), m_r(0) {}
 
     void set_pos(uint16_t c, uint16_t r)
     {
@@ -241,7 +262,8 @@ public:
         DISPLAY::start();
 
         for (uint16_t i = 0; i < n; ++i)
-            DISPLAY::write(g->bitmap[i] > 127 ? m_fg : m_bg);
+            //DISPLAY::write(color2st7789(g->bitmap[i] > 127 ? m_fg : m_bg));
+            DISPLAY::write(color2st7789(interpolate_color(m_bg, m_fg, g->bitmap[i])));
 
         m_c += w;
     }
@@ -261,8 +283,8 @@ public:
 
 private:
     const fontlib::font_t&  m_font;
-    uint16_t                m_fg;
-    uint16_t                m_bg;
+    color_t                 m_fg;
+    color_t                 m_bg;
     uint16_t                m_c;
     uint16_t                m_r;
 };
