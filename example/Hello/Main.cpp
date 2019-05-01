@@ -14,8 +14,6 @@ using namespace gpio;
 using namespace st7789;
 using namespace fontlib;
 
-extern font_t fontlib::font;
-
 typedef st7789_t<1, PA5, PA7, PC5, PC4> display;
 typedef output_t<PC8> led_a;
 typedef output_t<PC9> led_b;
@@ -56,6 +54,6 @@ void loop(const font_t& ft)
     text_renderer_t<display> txr(ft);
 
     txr.set_pos(50, 100);
-    txr.write("HELLO WORLD!");
+    txr.write("Hello World!");
 }
 

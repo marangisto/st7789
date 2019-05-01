@@ -201,18 +201,19 @@ public:
         if (!g)         // bail out if we don't have a glyph
             return;
 
+        uint16_t c = m_c + g->offset_h, r = m_r + g->offset_v;
         uint16_t w = g->width, h = g->height;
         uint16_t n = w * h;
 
-        DISPLAY::set_col_addr(m_c, m_c + w - 1);
-        DISPLAY::set_row_addr(m_r, m_r + h - 1);
+        DISPLAY::set_col_addr(c, c + w - 1);
+        DISPLAY::set_row_addr(r, r + h - 1);
         DISPLAY::start();
 
         uint16_t fg = swap_bytes(from_rgb(255, 255, 255));
         uint16_t bg = swap_bytes(from_rgb(255, 0, 0));
 
         for (uint16_t i = 0; i < n; ++i)
-            DISPLAY::write(g->bitmap[i] ? fg : bg);
+            DISPLAY::write(g->bitmap[i] > 127 ? fg : bg);
 
         m_c += w;
     }
