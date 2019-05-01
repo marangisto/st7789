@@ -7,17 +7,21 @@
 #include <spi.h>
 #include <gpio.h>
 #include <st7789.h>
+#include <fontlib.h>
 
 using namespace stm32f0;
 using namespace gpio;
 using namespace st7789;
+using namespace fontlib;
+
+extern font_t fontlib::font;
 
 typedef st7789_t<1, PA5, PA7, PC5, PC4> display;
 typedef output_t<PC8> led_a;
 typedef output_t<PC9> led_b;
 typedef output_t<PB12> probe;
 
-void loop();
+void loop(const font_t&);
 
 int main()
 {
@@ -26,11 +30,19 @@ int main()
     led_b::setup();
     probe::setup();
 
+    display::clear(swap_bytes(from_rgb(255, 0, 0)));
+
+    font_t ft = fontlib::font;
+
     for (;;)
-        loop();
+    {
+        probe::set();
+        loop(ft);
+        probe::clear();
+    }
 }
 
-void loop()
+void loop(const font_t& ft)
 {
     static uint8_t i = 0;
 
@@ -41,42 +53,25 @@ void loop()
             led_b::toggle();
     }
 
-    for (size_t k = 0; k < 1; ++k)
-    {
-        uint16_t pixel;
+    const glyph_t *g = get_glyph(ft, 'A');
 
-        switch (k)
-        {
-            case 0: pixel = from_rgb(127, 127, 127); break;
-            case 1: pixel = from_rgb(255,   0,   0); break;
-            case 2: pixel = from_rgb(  0, 255,   0); break;
-            case 3: pixel = from_rgb(  0,   0, 255); break;
-            case 4: pixel = from_rgb(255,   0, 255); break;
-            case 5: pixel = from_rgb(  0, 255, 255); break;
-            case 6: pixel = from_rgb(255, 255,   0); break;
-            case 7: pixel = from_rgb(255, 255, 255); break;
-        }
+    if (!g)         // bail out if we don't have a glyph
+        return;
 
-        pixel = swap_bytes(pixel);
+    uint8_t r = 50, c = 50;
+    uint8_t w = g->width, h = g->height;
+    uint16_t n = w * h;
 
-        display::clear(swap_bytes(from_rgb(255, 0, 0)));
-        probe::clear();
-
-        //sys_tick::delay_ms(250);
-    }
-
-    display::set_col_addr(50, 59);
-    display::set_row_addr(50, 59);
+    display::set_col_addr(c, c + w - 1);
+    display::set_row_addr(r, c + h - 1);
     display::start();
 
-    for (uint16_t i = 0; i < 100; ++i)
-    {
-        probe::set();                                   // to measure frame rate
-        display::write(0);
-        probe::clear();
-        sys_tick::delay_ms(1);
-    }
+    uint16_t fg = swap_bytes(from_rgb(255, 255, 255));
+    uint16_t bg = swap_bytes(from_rgb(255, 0, 0));
 
-    sys_tick::delay_ms(1000);
+    for (uint16_t i = 0; i < n; ++i)
+    {
+        display::write(g->bitmap[i] ? fg : bg);
+    }
 }
 
