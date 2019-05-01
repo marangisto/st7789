@@ -28,7 +28,7 @@ int main()
     led_b::setup();
     probe::setup();
 
-    display::clear(swap_bytes(from_rgb(255, 0, 0)));
+    display::clear(color::yellow);
 
     font_t ft = fontlib::font;
 
@@ -51,9 +51,11 @@ void loop(const font_t& ft)
             led_b::toggle();
     }
 
-    text_renderer_t<display> txr(ft);
+    text_renderer_t<display> txr(ft, color::black, color::yellow);
 
     txr.set_pos(50, 100);
     txr.write("Hello World!");
+
+    for (;;);   // stop here forever!
 }
 

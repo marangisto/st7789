@@ -16,20 +16,49 @@ namespace stm32f0
 namespace st7789
 {
 
-// rgb color using conventional 0..255 ranges
-__attribute__((always_inline))
-static inline uint16_t from_rgb(uint8_t r, uint8_t g, uint8_t b)
+typedef uint32_t color_t;   // FIXME: move to color library
+
+static inline constexpr color_t to_color(uint8_t r, uint8_t g, uint8_t b)
 {
-    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+    return (static_cast<uint32_t>(r) << 16)
+         | (static_cast<uint32_t>(g) << 8)
+         | static_cast<uint32_t>(b)
+         ;
 }
 
-// Swap byte order for 16-bit color scheme
+namespace color             // FIXME: color library!
+{
+static const color_t black = to_color(0, 0, 0);
+static const color_t red = to_color(255, 0, 0);
+static const color_t green = to_color(0, 255, 0);
+static const color_t blue = to_color(0, 0, 255);
+static const color_t magenta = to_color(255, 0, 255);
+static const color_t cyan = to_color(0, 255, 255);
+static color_t yellow = to_color(255, 255, 0);
+static const color_t white = to_color(255, 255, 255);
+} // color
+
+// swap byte order for 16-bit color scheme
 __attribute__((always_inline))
 static inline uint16_t swap_bytes(uint16_t x)
 {
     uint16_t l = x & 0xff;
 
     return (l << 8) | (x >> 8);
+}
+
+// rgb color using conventional 0..255 ranges
+__attribute__((always_inline))
+static inline uint16_t st7899_from_rgb(uint8_t r, uint8_t g, uint8_t b)
+{
+    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+}
+
+// convert color_t to st7780 color encoding
+__attribute__((always_inline))
+static inline uint16_t color2st7789(color_t c)
+{
+    return swap_bytes(st7899_from_rgb((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff));
 }
 
 template
@@ -67,13 +96,14 @@ public:
         clear();
     }
 
-    static void clear(uint16_t color = 0)
+    static void clear(color_t color = 0)
     {
+        uint16_t c = color2st7789(color);
         set_col_addr(0, width() - 1);
         set_row_addr(0, height() - 1);
         write_cmd(RAMWR);                           // write pixel data
         for (uint32_t i = 0; i < width()*height(); ++i)
-            dev::write(static_cast<uint16_t>(color));
+            dev::write(c);
     }
 
     static inline void start() { write_cmd(RAMWR); }
@@ -186,7 +216,8 @@ template<typename DISPLAY>
 class text_renderer_t
 {
 public:
-    text_renderer_t(const fontlib::font_t& font): m_font(font) {}
+    text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
+        : m_font(font), m_fg(color2st7789(fg)), m_bg(color2st7789(bg)) {}
 
     void set_pos(uint16_t c, uint16_t r)
     {
@@ -209,11 +240,8 @@ public:
         DISPLAY::set_row_addr(r, r + h - 1);
         DISPLAY::start();
 
-        uint16_t fg = swap_bytes(from_rgb(255, 255, 255));
-        uint16_t bg = swap_bytes(from_rgb(255, 0, 0));
-
         for (uint16_t i = 0; i < n; ++i)
-            DISPLAY::write(g->bitmap[i] > 127 ? fg : bg);
+            DISPLAY::write(g->bitmap[i] > 127 ? m_fg : m_bg);
 
         m_c += w;
     }
@@ -226,6 +254,8 @@ public:
 
 private:
     const fontlib::font_t&  m_font;
+    uint16_t                m_fg;
+    uint16_t                m_bg;
     uint16_t                m_c;
     uint16_t                m_r;
 };
