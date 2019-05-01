@@ -8,6 +8,7 @@
 
 #include <spi.h>
 #include <gpio.h>
+#include <fontlib.h>
 
 namespace stm32f0
 {
@@ -181,6 +182,53 @@ private:
     }
 };
 
+template<typename DISPLAY>
+class text_renderer_t
+{
+public:
+    text_renderer_t(const fontlib::font_t& font): m_font(font) {}
+
+    void set_pos(uint16_t c, uint16_t r)
+    {
+        m_c = c;
+        m_r = r;
+    }
+
+    void write(char ch)
+    {
+        const fontlib::glyph_t *g = fontlib::get_glyph(m_font, ch);
+
+        if (!g)         // bail out if we don't have a glyph
+            return;
+
+        uint16_t w = g->width, h = g->height;
+        uint16_t n = w * h;
+
+        DISPLAY::set_col_addr(m_c, m_c + w - 1);
+        DISPLAY::set_row_addr(m_r, m_r + h - 1);
+        DISPLAY::start();
+
+        uint16_t fg = swap_bytes(from_rgb(255, 255, 255));
+        uint16_t bg = swap_bytes(from_rgb(255, 0, 0));
+
+        for (uint16_t i = 0; i < n; ++i)
+            DISPLAY::write(g->bitmap[i] ? fg : bg);
+
+        m_c += w;
+    }
+
+    void write(const char *s)
+    {
+        while (*s)
+            write(*s++);
+    }
+
+private:
+    const fontlib::font_t&  m_font;
+    uint16_t                m_c;
+    uint16_t                m_r;
+};
+    
 } // namespace st7789
 
 } // namespace stm32f0

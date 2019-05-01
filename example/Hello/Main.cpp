@@ -53,25 +53,9 @@ void loop(const font_t& ft)
             led_b::toggle();
     }
 
-    const glyph_t *g = get_glyph(ft, 'A');
+    text_renderer_t<display> txr(ft);
 
-    if (!g)         // bail out if we don't have a glyph
-        return;
-
-    uint8_t r = 50, c = 50;
-    uint8_t w = g->width, h = g->height;
-    uint16_t n = w * h;
-
-    display::set_col_addr(c, c + w - 1);
-    display::set_row_addr(r, c + h - 1);
-    display::start();
-
-    uint16_t fg = swap_bytes(from_rgb(255, 255, 255));
-    uint16_t bg = swap_bytes(from_rgb(255, 0, 0));
-
-    for (uint16_t i = 0; i < n; ++i)
-    {
-        display::write(g->bitmap[i] ? fg : bg);
-    }
+    txr.set_pos(50, 100);
+    txr.write("HELLO WORLD!");
 }
 
