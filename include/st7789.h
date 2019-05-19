@@ -245,7 +245,7 @@ class text_renderer_t
 {
 public:
     text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
-        : m_font(font), m_fg(fg), m_bg(bg), m_c(0), m_r(0) {}
+        : m_font(font), m_fg(fg), m_bg(bg), m_c(0), m_r(m_font.height - 1), m_scroll(0) {}
 
     uint16_t text_height() const
     {
@@ -272,6 +272,21 @@ public:
     {
         m_c = c;
         m_r = r;
+    }
+
+    void clear_line()
+    {
+        uint16_t w = DISPLAY::width();
+        uint16_t h = m_font.height, extra = 3;
+
+        DISPLAY::set_col_addr(0, w - 1);
+        DISPLAY::set_row_addr(m_r - (h - 1), m_r + extra);
+        DISPLAY::start();
+
+        uint16_t n = (h + extra) * w;
+
+        for (uint16_t i = 0; i < n; ++i)
+            DISPLAY::write(color2st7789(m_bg));
     }
 
     void write(char ch)
@@ -308,7 +323,20 @@ public:
     {
         write(s);
         m_c = 0;
-        m_r += m_font.height;
+
+            m_r += m_font.height;
+            if (m_r > DISPLAY::height())
+            {
+                if (m_scroll + m_font.height < 320)
+                    m_scroll += m_font.height;
+                else
+                {
+                    m_scroll = 0;
+                    m_r = m_font.height - 1;
+                    DISPLAY::clear(m_bg);
+                }
+                DISPLAY::scroll(m_scroll);
+            }
     }
 
 private:
@@ -317,6 +345,7 @@ private:
     color_t                 m_bg;
     uint16_t                m_c;
     uint16_t                m_r;
+    uint16_t                m_scroll;
 };
     
 } // namespace st7789

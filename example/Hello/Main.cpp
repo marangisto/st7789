@@ -54,8 +54,7 @@ void loop(const font_t& ft)
     text_renderer_t<display> txr(ft, color::black, color::yellow);
 
     static const char *lines[] =
-        { ""    // FIXME: we need to start at font height!
-        , "Julius Caesar is our travel"
+        { "Julius Caesar is our travel"
         , "guide as he takes us through"
         , "his murderous subjugation of"
         , "the native Celtic tribal"
@@ -66,16 +65,23 @@ void loop(const font_t& ft)
         , "nearly win."
         };
 
-    for (uint8_t i = 0; i < sizeof(lines) / sizeof(*lines); ++i)
-        txr.writeln(lines[i]);
+    for (;;)
+        for (uint8_t i = 0; i < sizeof(lines) / sizeof(*lines); ++i)
+        {
+//            txr.set_pos(0, 40);
+//            txr.clear_line();
+            txr.writeln(lines[i]);
+            sys_tick::delay_ms(1000);
+        }
 
+/*
     for (;;)
         for (uint16_t l = 0; l < 320; ++l)
         {
             sys_tick::delay_ms(5);
             display::scroll(l);
         }
-
+*/
     for (;;);   // stop here forever!
 }
 
