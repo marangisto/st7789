@@ -260,18 +260,21 @@ public:
         if (!g)         // bail out if we don't have a glyph
             return;
 
-        uint16_t c = m_c + g->offset_h, r = m_r + g->offset_v;
-        uint16_t w = g->width, h = g->height;
-        uint16_t n = w * h;
+        uint16_t w = g->width, h = g->height, n = w * h;
+        uint16_t c0 = g->offset_h, c1 = c0 + w - 1;         // box start and end columns
+        uint16_t r0 = g->offset_v, r1 = r0 + h - 1;         // box start and end rows
 
-        DISPLAY::set_col_addr(c, c + w - 1);
-        DISPLAY::set_row_addr(r, r + h - 1);
+        if (m_c + c1 >= DISPLAY::width())
+            return;                                         // truncate long lines
+
+        DISPLAY::set_col_addr(m_c + c0, m_c + c1);
+        DISPLAY::set_row_addr(m_r + r0, m_r + r1);
         DISPLAY::start();
 
         for (uint16_t i = 0; i < n; ++i)
             DISPLAY::write(color2st7789(interpolate_color(m_bg, m_fg, g->bitmap[i])));
 
-        m_c += w;
+        m_c += c1;  // FIXME: c1 or w?
     }
 
     void write(const char *s)
