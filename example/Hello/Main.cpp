@@ -69,6 +69,13 @@ void loop(const font_t& ft)
     for (uint8_t i = 0; i < sizeof(lines) / sizeof(*lines); ++i)
         txr.writeln(lines[i]);
 
+    for (;;)
+        for (uint16_t l = 0; l < 320; ++l)
+        {
+            sys_tick::delay_ms(5);
+            display::scroll(l);
+        }
+
     for (;;);   // stop here forever!
 }
 

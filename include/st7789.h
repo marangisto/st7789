@@ -120,10 +120,10 @@ public:
     static void clear(color_t color = 0)
     {
         uint16_t c = color2st7789(color);
-        set_col_addr(0, width() - 1);
-        set_row_addr(0, height() - 1);
+        set_col_addr(0, TFT_WIDTH - 1);
+        set_row_addr(0, MEM_HEIGHT - 1);
         write_cmd(RAMWR);                           // write pixel data
-        for (uint32_t i = 0; i < width()*height(); ++i)
+        for (uint32_t i = 0; i < TFT_WIDTH * MEM_HEIGHT; ++i)
             dev::write(c);
     }
 
@@ -139,16 +139,22 @@ public:
     static constexpr uint16_t width() { return TFT_WIDTH; }
     static constexpr uint16_t height() { return TFT_HEIGHT; }
 
-    static void set_col_addr(uint8_t c0, uint8_t cn) { write_cmd(CASET, 0, c0, 0, cn); }
-    static void set_row_addr(uint8_t r0, uint8_t rn) { write_cmd(RASET, 0, r0, 0, rn); }
+    static void set_col_addr(uint16_t c0, uint16_t cn) { write_cmd(CASET, c0 >> 8, c0 & 0xff, cn >> 8, cn & 0xff); }
+    static void set_row_addr(uint16_t r0, uint16_t rn) { write_cmd(RASET, r0 >> 8, r0 & 0xff, rn >> 8, rn & 0xff); }
+
+    static void scroll(uint16_t lines)
+    {
+        write_cmd(VSCSAD, lines >> 8, lines & 0xff);
+    }
 
 private:
     typedef spi::spi_t<SPI, SCL, SDA>   dev;
     typedef gpio::output_t<DC>          dcx;
     typedef gpio::output_t<RS>          res;
 
-    static const uint8_t TFT_WIDTH  = 240;
-    static const uint8_t TFT_HEIGHT = 240;
+    static const uint16_t TFT_WIDTH  = 240;
+    static const uint16_t TFT_HEIGHT = 240;
+    static const uint16_t MEM_HEIGHT = 320;
 
     enum command_t
         { CABCCTRL     = 0xC7   // CABC control
@@ -220,6 +226,7 @@ private:
         , VDVVRHEN     = 0xC2   // VDV and VRH command enable
         , VRHS         = 0xC3   // VRH set
         , VSCRDEF      = 0x33   // Vertical scrolling definition
+        , VSCSAD       = 0x37   // Vertical scrolling start address
         };
 
     template<typename... Args>
