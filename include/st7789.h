@@ -247,6 +247,27 @@ public:
     text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
         : m_font(font), m_fg(fg), m_bg(bg), m_c(0), m_r(0) {}
 
+    uint16_t text_height() const
+    {
+        return m_font.height;
+    }
+
+    uint16_t width_of(char ch) const
+    {
+        const fontlib::glyph_t *g = fontlib::get_glyph(m_font, ch);
+
+        return g->offset_h + g->width;
+    }
+
+    uint16_t width_of(const char *s) const
+    {
+        uint16_t w = 0;
+
+        while (*s)
+            w += width_of(*s++);
+        return w;
+    }
+
     void set_pos(uint16_t c, uint16_t r)
     {
         m_c = c;
@@ -261,20 +282,20 @@ public:
             return;
 
         uint16_t w = g->width, h = g->height, n = w * h;
-        uint16_t c0 = g->offset_h, c1 = c0 + w - 1;         // box start and end columns
-        uint16_t r0 = g->offset_v, r1 = r0 + h - 1;         // box start and end rows
+        uint16_t c0 = m_c + g->offset_h, c1 = c0 + w;       // box start and end columns
+        int16_t r0 = m_r + g->offset_v, r1 = r0 + h;        // box start and end rows
 
-        if (m_c + c1 >= DISPLAY::width())
+        if (c1 >= DISPLAY::width())
             return;                                         // truncate long lines
 
-        DISPLAY::set_col_addr(m_c + c0, m_c + c1);
-        DISPLAY::set_row_addr(m_r + r0, m_r + r1);
+        DISPLAY::set_col_addr(c0, c1 - 1);
+        DISPLAY::set_row_addr(r0, r1 - 1);
         DISPLAY::start();
 
         for (uint16_t i = 0; i < n; ++i)
             DISPLAY::write(color2st7789(interpolate_color(m_bg, m_fg, g->bitmap[i])));
 
-        m_c += c1;  // FIXME: c1 or w?
+        m_c = c1;
     }
 
     void write(const char *s)
