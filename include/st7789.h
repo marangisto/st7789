@@ -133,6 +133,7 @@ public:
         write_cmd(RAMWR);
     }
 
+    __attribute__((always_inline))
     static inline void write(uint16_t x) { dev::write(x); }
 
     static constexpr uint16_t width() { return TFT_WIDTH; }
@@ -144,6 +145,32 @@ public:
     static void scroll(uint16_t lines)
     {
         write_cmd(VSCSAD, lines >> 8, lines & 0xff);
+    }
+
+    static void set_pixel(uint16_t x, uint16_t y, color_t c)
+    {
+        set_col_addr(x, x);
+        set_row_addr(y, y);
+        write_cmd(RAMWR);
+        write(color2st7789(c));
+    }
+
+    static void set_pixels_h(uint16_t x, uint16_t y, uint16_t n, color_t c)
+    {
+        set_col_addr(x, x + n - 1);
+        set_row_addr(y, y);
+        write_cmd(RAMWR);
+        for (uint16_t i = 0; i < n; ++i)
+            write(color2st7789(c));
+    }
+
+    static void set_pixels_v(uint16_t x, uint16_t y, uint16_t n, color_t c)
+    {
+        set_col_addr(x, x);
+        set_row_addr(y, y + n - 1);
+        write_cmd(RAMWR);
+        for (uint16_t i = 0; i < n; ++i)
+            write(color2st7789(c));
     }
 
 private:
