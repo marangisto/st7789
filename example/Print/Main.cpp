@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <cstdio>
 #include <gpio.h>
 #include <st7789.h>
 #include <text.h>
@@ -9,6 +10,8 @@ using namespace st7789;
 using namespace fontlib;
 
 typedef st7789_t<1, PA5, PA7, PC5, PC4> display;
+
+constexpr double pi = 3.14159265358979323846;
 
 void loop(const font_t&, color_t, color_t);
 
@@ -33,10 +36,13 @@ void loop(const font_t& ft, color_t fg, color_t bg)
 
     for (int i = 0; i < 1000; ++i)
     {
-        char buf[32];
+        char buf[128];
 
         tr.set_pos(50, 100);
         tr.write(itoa(i, buf, 10));
+        tr.set_pos(50, 200);
+        sprintf(buf, "%.7f", pi);
+        tr.write(buf);
         sys_tick::delay_ms(2);
     }
 }
