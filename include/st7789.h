@@ -269,7 +269,6 @@ public:
         DISPLAY::start();
 
         for (uint16_t i = 0; i < n; ++i)
-            //DISPLAY::write(color2st7789(g->bitmap[i] > 127 ? m_fg : m_bg));
             DISPLAY::write(color2st7789(interpolate_color(m_bg, m_fg, g->bitmap[i])));
 
         m_c += w;
@@ -285,7 +284,7 @@ public:
     {
         write(s);
         m_c = 0;
-        m_r += 20;  // FIXME: font height
+        m_r += m_font.height;
     }
 
 private:
