@@ -7,7 +7,7 @@
 #include <spi.h>
 #include <gpio.h>
 #include <st7789.h>
-#include <fontlib.h>
+#include <text.h>
 
 using namespace stm32f0;
 using namespace gpio;
