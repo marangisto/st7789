@@ -30,7 +30,7 @@ int main()
 
     display::clear(color::yellow);
 
-    font_t ft = fontlib::font;
+    font_t ft = fontlib::cmuntx_20;
 
     for (;;)
     {

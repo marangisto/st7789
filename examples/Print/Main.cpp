@@ -19,7 +19,7 @@ int main()
 {
     display::setup();
 
-    font_t ft = fontlib::font;
+    font_t ft = fontlib::cmunss_32;
 
     for (;;)
         loop(ft, color::yellow, color::blue);
