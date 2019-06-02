@@ -6,6 +6,7 @@
 //
 ////
 
+#include <algorithm>
 #include <fontlib.h>
 #include "color.h"
 
@@ -21,8 +22,20 @@ template<typename DISPLAY>
 class text_renderer_t
 {
 public:
-    text_renderer_t(const fontlib::font_t& font, color_t fg = color::white, color_t bg = color::black)
-        : m_font(font), m_fg(fg), m_bg(bg), m_c(0), m_r(m_font.height - 1), m_scroll(0) {}
+    text_renderer_t
+        ( const fontlib::font_t& font
+        , color_t fg = color::white
+        , color_t bg = color::black
+        , bool pad = false
+        ) : m_font(font)
+          , m_fg(fg)
+          , m_bg(bg)
+          , m_c(0)
+          , m_r(m_font.height - 1)
+          , m_scroll(0)
+          , m_pad(pad)
+    {
+    }
 
     uint16_t text_height() const
     {
@@ -74,11 +87,12 @@ public:
             return;
 
         uint16_t w = g->width, h = g->height, n = w * h;
-        uint16_t c0 = m_c + g->offset_h, c1 = c0 + w;       // box start and end columns
-        int16_t r0 = m_r + g->offset_v, r1 = r0 + h;        // box start and end rows
+        int16_t c0 = m_c + std::max<int16_t>(0, g->offset_h);   // box start and end columns
+        int16_t c1 = c0 + w;
+        int16_t r0 = m_r + g->offset_v, r1 = r0 + h;            // box start and end rows
 
         if (c1 >= DISPLAY::width())
-            return;                                         // truncate long lines
+            return;                                             // truncate long lines
 
         DISPLAY::set_col_addr(c0, c1 - 1);
         DISPLAY::set_row_addr(r0, r1 - 1);
@@ -86,6 +100,28 @@ public:
 
         for (uint16_t i = 0; i < n; ++i)
             DISPLAY::write(color2st7789(interpolate_color(m_bg, m_fg, g->bitmap[i])));
+
+        if (m_pad)
+        {
+            DISPLAY::set_row_addr(m_r + m_font.min_y, r0 - 1);
+            DISPLAY::start();
+            printf("g->offset = %d\n", g->offset_v);
+            printf("m_font.min_y = %d\n", m_font.min_y);
+            int16_t nr = g->offset_v - m_font.min_y;
+            printf("nr = %d\n", nr);
+            int16_t n = w * nr;
+            for (uint16_t i = 0; i < n; ++i)
+                DISPLAY::write(color2st7789(yellow));
+
+            DISPLAY::set_row_addr(r1, m_r + m_font.max_y);
+            DISPLAY::start();
+            int16_t mr = m_font.max_y - g->offset_v - h + 1;
+            printf("m_font.max_y = %d\n", m_font.max_y);
+            printf("mr = %d\n", mr);
+            int16_t m = w * mr;
+            for (uint16_t i = 0; i < m; ++i)
+                DISPLAY::write(color2st7789(yellow));
+        }
 
         m_c = c1;
     }
@@ -123,8 +159,9 @@ private:
     uint16_t                m_c;
     uint16_t                m_r;
     uint16_t                m_scroll;
+    bool                    m_pad;
 };
-    
+
 } // namespace st7789
 
 } // namespace stm32f0

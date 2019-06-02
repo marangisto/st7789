@@ -132,7 +132,7 @@ void run()
 
     bool quit = false;
     font_t font = fontlib::cmunrm_48;
-    stm32f0::st7789::text_renderer_t<sdl_display> tr(font, white, black);
+    stm32f0::st7789::text_renderer_t<sdl_display> tr(font, white, black, true);
 
     SDL_Texture *texture = SDL_CreateTexture
         ( renderer
@@ -148,10 +148,9 @@ void run()
 
     SDL_StartTextInput();
 
-    uint16_t r = -font.min_y;
-    uint16_t ls = font.max_y - font.min_y;  // minimum line-spacing
+    uint16_t r = font.start_row();
 
-    tr.set_pos(10, r);
+    tr.set_pos(0, r);
 
     while (!quit)
     {
@@ -181,8 +180,8 @@ void run()
                 switch (e.key.keysym.scancode)
                 {
                 case SDL_SCANCODE_RETURN:
-                    r += ls;
-                    tr.set_pos(10, r);
+                    r += font.line_spacing();
+                    tr.set_pos(0, r);
                     break;
                 default:
                     ;
