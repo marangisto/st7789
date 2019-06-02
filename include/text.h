@@ -7,12 +7,15 @@
 ////
 
 #include <fontlib.h>
+#include "color.h"
 
 namespace stm32f0
 {
 
 namespace st7789
 {
+
+using namespace color;
 
 template<typename DISPLAY>
 class text_renderer_t
