@@ -121,6 +121,13 @@ public:
             int16_t m = w * mr;
             for (uint16_t i = 0; i < m; ++i)
                 DISPLAY::write(color2st7789(yellow));
+
+            DISPLAY::set_col_addr(m_c, m_c + g->offset_h - 1);
+            DISPLAY::set_row_addr(m_r + m_font.min_y, m_r + m_font.max_y);
+            DISPLAY::start();
+            int16_t o = std::max<int16_t>(0, g->offset_h) * (1 + m_font.max_y - m_font.min_y);
+            for (uint16_t i = 0; i < o; ++i)
+                DISPLAY::write(color2st7789(red));
         }
 
         m_c = c1;
