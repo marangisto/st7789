@@ -14,6 +14,8 @@ struct pen_t
 public:
     pen_t(color_t c): m_c(c), m_x(0), m_y(0) {}
 
+    inline void set_color(color_t c) { m_c = c; }
+
     inline void move_to(int16_t x, int16_t y)
     {
         m_x = x;
