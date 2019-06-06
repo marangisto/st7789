@@ -42,6 +42,11 @@ public:
         return m_font.height;
     }
 
+    uint16_t line_spacing() const
+    {
+        return m_font.line_spacing();
+    }
+
     uint16_t width_of(char ch) const
     {
         const fontlib::glyph_t *g = fontlib::get_glyph(m_font, ch);
