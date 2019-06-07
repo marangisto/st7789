@@ -24,6 +24,7 @@ void loop(const font_t&);
 int main()
 {
     display::setup();
+    display::set_scroll_area(0, 240);
     led_a::setup();
     led_b::setup();
     probe::setup();
@@ -51,7 +52,7 @@ void loop(const font_t& ft)
             led_b::toggle();
     }
 
-    text_renderer_t<display> txr(ft, color::black, color::yellow);
+    text_renderer_t<display> txr(ft, color::black, color::yellow, true);
 
     static const char *lines[] =
         { "Julius Caesar is our travel"

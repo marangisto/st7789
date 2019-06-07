@@ -49,7 +49,6 @@ public:
         write_cmd(RASET, 0, 0, 0, TFT_HEIGHT - 1);  // row address set
         write_cmd(DISPON);                          // display-on
         write_cmd(INVON);                           // inverted mode
-
         clear();
     }
 
@@ -78,6 +77,13 @@ public:
 
     static void set_col_addr(uint16_t c0, uint16_t cn) { write_cmd(CASET, c0 >> 8, c0 & 0xff, cn >> 8, cn & 0xff); }
     static void set_row_addr(uint16_t r0, uint16_t rn) { write_cmd(RASET, r0 >> 8, r0 & 0xff, rn >> 8, rn & 0xff); }
+
+    static void set_scroll_area(uint16_t y, uint16_t h)
+    {
+        uint16_t b = MEM_HEIGHT - y - h;
+
+        write_cmd(VSCRDEF, y >> 8, y & 0xff, h >> 8, h & 0xff, b >> 8, b & 0xff);
+    }
 
     static void scroll(uint16_t lines)
     {

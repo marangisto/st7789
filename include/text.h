@@ -31,7 +31,7 @@ public:
           , m_fg(fg)
           , m_bg(bg)
           , m_c(0)
-          , m_r(m_font.height - 1)
+          , m_r(m_font.line_spacing() - 1)
           , m_scroll(0)
           , m_pad(pad)
     {
@@ -110,10 +110,7 @@ public:
         {
             DISPLAY::set_row_addr(m_r + m_font.min_y, r0 - 1);
             DISPLAY::start();
-            printf("g->offset = %d\n", g->offset_v);
-            printf("m_font.min_y = %d\n", m_font.min_y);
             int16_t nr = g->offset_v - m_font.min_y;
-            printf("nr = %d\n", nr);
             int16_t n = w * nr;
             for (uint16_t i = 0; i < n; ++i)
                 DISPLAY::write(color2st7789(m_bg));
@@ -121,8 +118,6 @@ public:
             DISPLAY::set_row_addr(r1, m_r + m_font.max_y);
             DISPLAY::start();
             int16_t mr = m_font.max_y - g->offset_v - h + 1;
-            printf("m_font.max_y = %d\n", m_font.max_y);
-            printf("mr = %d\n", mr);
             int16_t m = w * mr;
             for (uint16_t i = 0; i < m; ++i)
                 DISPLAY::write(color2st7789(m_bg));
@@ -149,19 +144,19 @@ public:
         write(s);
         m_c = 0;
 
-            m_r += m_font.height;
-            if (m_r > DISPLAY::height())
-            {
-                if (m_scroll + m_font.height < 320)
-                    m_scroll += m_font.height;
-                else
-                {
-                    m_scroll = 0;
-                    m_r = m_font.height - 1;
-                    DISPLAY::clear(m_bg);
-                }
-                DISPLAY::scroll(m_scroll);
-            }
+        uint16_t ls = m_font.line_spacing();
+
+        if (m_r + ls < DISPLAY::height())
+            m_r += ls;
+        else
+        {
+            if (m_scroll + ls < DISPLAY::height())
+                m_scroll += ls;
+            else
+                m_scroll = 0;
+
+            DISPLAY::scroll(m_scroll);
+        }
     }
 
 private:
