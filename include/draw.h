@@ -2,9 +2,6 @@
 
 #include <st7789.h>
 
-namespace stm32f0
-{
-
 namespace st7789
 {
 
@@ -130,7 +127,5 @@ private:
     int16_t     m_x, m_y;
 };
 
-}
-
-}
+} // namespace st7789
 

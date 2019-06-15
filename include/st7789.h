@@ -10,12 +10,10 @@
 #include <gpio.h>
 #include "color.h"
 
-namespace stm32f0
-{
-
 namespace st7789
 {
 
+using namespace hal;
 using namespace color;
 
 template
@@ -210,6 +208,4 @@ private:
 };
 
 } // namespace st7789
-
-} // namespace stm32f0
 

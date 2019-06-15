@@ -10,9 +10,6 @@
 #include <fontlib.h>
 #include "color.h"
 
-namespace stm32f0
-{
-
 namespace st7789
 {
 
@@ -170,6 +167,4 @@ private:
 };
 
 } // namespace st7789
-
-} // namespace stm32f0
 

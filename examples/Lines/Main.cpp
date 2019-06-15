@@ -9,7 +9,7 @@
 #include <st7789.h>
 #include <draw.h>
 
-using namespace stm32f0;
+using namespace hal;
 using namespace gpio;
 using namespace st7789;
 
