@@ -132,7 +132,7 @@ void run()
 
     bool quit = false;
     font_t font = fontlib::cmunrm_48;
-    stm32f0::st7789::text_renderer_t<sdl_display> tr(font, white, black, true);
+    st7789::text_renderer_t<sdl_display> tr(font, white, black, true);
 
     SDL_Texture *texture = SDL_CreateTexture
         ( renderer
