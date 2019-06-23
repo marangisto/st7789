@@ -119,6 +119,7 @@ public:
     {
         set_col_addr(x, x);
         set_row_addr(y, y);
+        start();
         write(c);
     }
 
@@ -126,6 +127,7 @@ public:
     {
         set_col_addr(x, x + n - 1);
         set_row_addr(y, y);
+        start();
         for (uint16_t i = 0; i < n; ++i)
             write(c);
     }
@@ -134,6 +136,7 @@ public:
     {
         set_col_addr(x, x);
         set_row_addr(y, y + n - 1);
+        start();
         for (uint16_t i = 0; i < n; ++i)
             write(c);
     }
