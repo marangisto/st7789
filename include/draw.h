@@ -1,14 +1,17 @@
 #pragma once
 
-#include <st7789.h>
+#include "color.h"
 
-namespace st7789
+namespace graphics
 {
+
+using namespace color;
 
 template<typename DISPLAY>
 struct pen_t
 {
 public:
+
     pen_t(color_t c): m_c(c), m_x(0), m_y(0) {}
 
     inline void set_color(color_t c) { m_c = c; }
@@ -127,5 +130,5 @@ private:
     int16_t     m_x, m_y;
 };
 
-} // namespace st7789
+} // namespace graphics
 

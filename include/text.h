@@ -10,7 +10,7 @@
 #include <fontlib.h>
 #include "color.h"
 
-namespace st7789
+namespace text
 {
 
 using namespace color;
@@ -166,5 +166,5 @@ private:
     bool                    m_pad;
 };
 
-} // namespace st7789
+} // namespace text
 

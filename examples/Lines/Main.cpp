@@ -12,6 +12,8 @@
 using namespace hal;
 using namespace gpio;
 using namespace st7789;
+using namespace color;
+using namespace graphics;
 
 typedef st7789_t<1, PA5, PA7, PC5, PC4> display;
 
