@@ -1,6 +1,6 @@
 #include <text.h>
 #include <fontlib.h>
-#include "Display.h"
+#include <emulator.h>
 
 using namespace fontlib;
 using namespace color;
