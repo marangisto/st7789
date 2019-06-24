@@ -34,6 +34,25 @@ public:
     {
     }
 
+    void bounding_box(const char *s, uint16_t& w, uint16_t& h) const
+    {
+        int16_t ymin = 0, ymax = 0;
+        char c;
+
+        w = 0;
+
+        while ((c = *s++) != 0)
+        {
+            const fontlib::glyph_t *g = fontlib::get_glyph(m_font, c);
+
+            w += g->width + std::max<int16_t>(0, g->offset_h);
+            ymin = std::min<int16_t>(ymin, 0 + g->offset_v);
+            ymax = std::max<int16_t>(ymax, g->height + g->offset_v);
+        }
+
+        h = ymax - ymin;
+    }
+
     uint16_t text_height() const
     {
         return m_font.height;
