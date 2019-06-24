@@ -16,6 +16,33 @@ namespace st7789
 using namespace hal;
 using namespace color;
 
+namespace internal
+{
+    // swap byte order for 16-bit color scheme
+    __attribute__((always_inline))
+    static inline uint16_t swap_bytes(uint16_t x)
+    {
+        uint16_t l = x & 0xff;
+
+        return (l << 8) | (x >> 8);
+    }
+
+    // rgb color using conventional 0..255 ranges
+    __attribute__((always_inline))
+    static inline uint16_t st7799_from_rgb(uint8_t r, uint8_t g, uint8_t b)
+    {
+        return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+    }
+
+    // convert color_t to st7780 color encoding
+    __attribute__((always_inline))
+    static inline uint16_t color2st7789(color_t c)
+    {
+        return swap_bytes(st7799_from_rgb((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff));
+    }
+
+} // namespace internal
+
 template
     < uint8_t           SPI     // SPI peripheral number
     , gpio::gpio_pin_t  SCL     // SPI clock
@@ -52,7 +79,7 @@ public:
 
     static void clear(color_t color = 0)
     {
-        uint16_t c = color2st7789(color);
+        uint16_t c = internal::color2st7789(color);
         set_col_addr(0, TFT_WIDTH - 1);
         set_row_addr(0, MEM_HEIGHT - 1);
         write_cmd(RAMWR);                           // write pixel data
@@ -68,7 +95,7 @@ public:
     }
 
     __attribute__((always_inline))
-    static inline void write(uint16_t x) { dev::write(x); }
+    static inline void write(color_t c) { dev::write(internal::color2st7789(c)); }
 
     static constexpr uint16_t width() { return TFT_WIDTH; }
     static constexpr uint16_t height() { return TFT_HEIGHT; }
@@ -93,7 +120,7 @@ public:
         set_col_addr(x, x);
         set_row_addr(y, y);
         write_cmd(RAMWR);
-        write(color2st7789(c));
+        write(c);
     }
 
     static void set_pixels_h(uint16_t x, uint16_t y, uint16_t n, color_t c)
@@ -101,8 +128,11 @@ public:
         set_col_addr(x, x + n - 1);
         set_row_addr(y, y);
         write_cmd(RAMWR);
+
+        uint16_t c7789 = internal::color2st7789(c);
+
         for (uint16_t i = 0; i < n; ++i)
-            write(color2st7789(c));
+            dev::write(c7789);
     }
 
     static void set_pixels_v(uint16_t x, uint16_t y, uint16_t n, color_t c)
@@ -110,8 +140,11 @@ public:
         set_col_addr(x, x);
         set_row_addr(y, y + n - 1);
         write_cmd(RAMWR);
+
+        uint16_t c7789 = internal::color2st7789(c);
+
         for (uint16_t i = 0; i < n; ++i)
-            write(color2st7789(c));
+            dev::write(c7789);
     }
 
 private:

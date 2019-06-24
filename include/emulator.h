@@ -27,10 +27,6 @@ public:
             throw "could not create window";
 
         m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
-
-        SDL_SetRenderDrawColor(m_renderer, 0xff, 0xff, 0x0, 0xff);
-        SDL_RenderPresent(m_renderer);
-
         m_texture = SDL_CreateTexture
             ( m_renderer
             , SDL_PIXELFORMAT_RGB888
@@ -38,7 +34,6 @@ public:
             , SCREEN_WIDTH
             , SCREEN_HEIGHT
             );
-
         SDL_SetRenderTarget(m_renderer, m_texture);
         SDL_StartTextInput();
     }
@@ -61,7 +56,10 @@ public:
 
     static void clear(color_t x = 0)
     {
-        SDL_SetRenderDrawColor(m_renderer, R(x), G(x), B(x), 0xff);
+        uint8_t r, g, b;
+
+        to_rgb(x, r, g, b);
+        SDL_SetRenderDrawColor(m_renderer, r, g, b, 0xff);
         for (unsigned c = 0; c < SCREEN_WIDTH; ++c)
             for (unsigned r = 0; r < SCREEN_HEIGHT; ++r)
                 SDL_RenderDrawPoint(m_renderer, c, r);
@@ -75,16 +73,18 @@ public:
         printf("start: %d %d\n", m_ci, m_ri);
     }
 
-    static inline void write(uint16_t x)
+    static inline void write(color_t c)
     {
-        printf("write %x ", x);
+        uint8_t r, g, b;
+
+        to_rgb(c, r, g, b);
+
+        printf("write (%d, %d, %d)\n", r, g, b);
 
         if (m_ri > m_rn)
             throw("attempt to write outside bounding box");
 
-        x = swap_bytes(x);  // because of reasons
-        printf("(%d, %d, %d)\n", R(x), G(x), B(x));
-        SDL_SetRenderDrawColor(m_renderer, R(x), G(x), B(x), 0xff);
+        SDL_SetRenderDrawColor(m_renderer, r, g, b, 0xff);
         SDL_RenderDrawPoint(m_renderer, m_ci, m_ri);
 
         if (++m_ci > m_cn)
@@ -145,10 +145,6 @@ private:
     static SDL_Window *m_window;
     static SDL_Renderer *m_renderer;
     static SDL_Texture *m_texture;
-
-    static inline uint8_t R(uint16_t x) { return (((x >> 11) & 0x1f) << 3) | 0x7; }
-    static inline uint8_t G(uint16_t x) { return (((x >> 5) & 0x2f) << 2) | 0x3; }
-    static inline uint8_t B(uint16_t x) { return ((x & 0x1f) << 3) | 0x7; }
     static uint16_t m_c0, m_cn, m_r0, m_rn, m_ci, m_ri;
 };
 

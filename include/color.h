@@ -13,39 +13,16 @@ static inline constexpr color_t to_color(uint8_t r, uint8_t g, uint8_t b)
          ;
 }
 
-static inline void to_rgb(color_t c, uint16_t& r, uint16_t& g, uint16_t& b)
+static inline void to_rgb(color_t c, uint8_t& r, uint8_t& g, uint8_t& b)
 {
     r = c >> 16;
     g = (c >> 8) & 0xff;
     b = c & 0xff;
 }
 
-// swap byte order for 16-bit color scheme
-__attribute__((always_inline))
-static inline uint16_t swap_bytes(uint16_t x)
-{
-    uint16_t l = x & 0xff;
-
-    return (l << 8) | (x >> 8);
-}
-
-// rgb color using conventional 0..255 ranges
-__attribute__((always_inline))
-static inline uint16_t st7899_from_rgb(uint8_t r, uint8_t g, uint8_t b)
-{
-    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
-}
-
-// convert color_t to st7780 color encoding
-__attribute__((always_inline))
-static inline uint16_t color2st7789(color_t c)
-{
-    return swap_bytes(st7899_from_rgb((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff));
-}
-
 static inline color_t interpolate_color(color_t bg, color_t fg, uint16_t x)
 {
-    uint16_t rb, gb, bb, rf, gf, bf;
+    uint8_t rb, gb, bb, rf, gf, bf;
 
     to_rgb(bg, rb, gb, bb);
     to_rgb(fg, rf, gf, bf);
