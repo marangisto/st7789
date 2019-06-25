@@ -70,7 +70,7 @@ public:
     {
         m_ci = m_c0;
         m_ri = m_r0;
-        printf("start: %d %d\n", m_ci, m_ri);
+        //printf("start: %d %d\n", m_ci, m_ri);
     }
 
     static inline void write(color_t c)
@@ -79,7 +79,7 @@ public:
 
         to_rgb(c, r, g, b);
 
-        printf("write (%d, %d, %d)\n", r, g, b);
+        //printf("write (%d, %d, %d)\n", r, g, b);
 
         if (m_ri > m_rn)
             throw("attempt to write outside bounding box");
@@ -101,14 +101,14 @@ public:
     {
         m_c0 = c0;
         m_cn = cn;
-        printf("set_col: %d %d\n", m_c0, m_cn);
+        //printf("set_col: %d %d\n", m_c0, m_cn);
     }
 
     static void set_row_addr(uint16_t r0, uint16_t rn)
     {
         m_r0 = r0;
         m_rn = rn;
-        printf("set_row: %d %d\n", m_r0, m_rn);
+        //printf("set_row: %d %d\n", m_r0, m_rn);
     }
 
     static void scroll(uint16_t lines)
