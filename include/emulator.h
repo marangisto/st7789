@@ -9,7 +9,7 @@ template<unsigned SCREEN_WIDTH, unsigned SCREEN_HEIGHT>
 class display_t
 {
 public:
-    static void initialize(uint8_t scale = 1)
+    static void initialize(const char *title = "Hello World!", uint8_t scale = 1)
     {
         printf("starting display emulator!\n");
 
@@ -17,7 +17,7 @@ public:
             throw "could not initialize SD2";
 
         if (!(m_window = SDL_CreateWindow
-            ( "Hello World!"
+            ( title
             , SDL_WINDOWPOS_UNDEFINED
             , SDL_WINDOWPOS_UNDEFINED
 	        , SCREEN_WIDTH * scale

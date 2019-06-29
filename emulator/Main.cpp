@@ -52,7 +52,7 @@ void text_box
 
 void run()
 {
-    display::initialize(3);
+    display::initialize("Display Emulator", 3);
     display::clear(slate_gray);
     pen_t<display> pen(white);
 
