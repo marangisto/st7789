@@ -159,18 +159,19 @@ template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_rn = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ci = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ri = 0;
 
-bool keyboard_poll(char& c)
+enum event_t { ev_none, ev_quit, ev_key, ev_wheel };
+
+event_t poll_event(int& c)
 {
     SDL_Event e;
 
     if (!SDL_PollEvent(&e))
-        return false;
+        return ev_none;
 
     switch (e.type)
     {
     case SDL_QUIT:
-        c = 0;
-        return true;
+        return ev_quit;
     case SDL_TEXTINPUT:
         {
             uint16_t uc = e.text.text[0];
@@ -178,8 +179,10 @@ bool keyboard_poll(char& c)
             if (uc < 0x80)
             {
                 c = uc;
-                return true;
+                return ev_key;
             }
+            else
+                return ev_none;
         }
         break;
     case SDL_KEYDOWN:
@@ -187,12 +190,15 @@ bool keyboard_poll(char& c)
         {
         case SDL_SCANCODE_RETURN:
             c = '\r';
-            return true;
+            return ev_key;
         default:
-            ;
+            return ev_none;
         }
+    case SDL_MOUSEWHEEL:
+        c = e.wheel.y;
+        return ev_wheel;
     default:
-        return false;
+        return ev_none;
     }
 }
 

@@ -1,6 +1,4 @@
-#include <text.h>
-#include <fontlib.h>
-#include <draw.h>
+#include <widget.h>
 #include <emulator.h>
 
 using namespace text;
@@ -9,89 +7,53 @@ using namespace graphics;
 using namespace fontlib;
 
 typedef display_t<240, 240> display;
+static char tmp_buf[256];
 
-void text_box
-    ( uint16_t      x
-    , uint16_t      y
-    , uint16_t      w
-    , uint16_t      h
-    , const font_t& font
-    , color_t       fg
-    , color_t       bg
-    , const char    *s
-    )
-{
-    text_renderer_t<display> tr(font, fg, bg, true);
-    pen_t<display> pen(bg);
-    uint16_t tw, th;
- 
-    tr.bounding_box(s, tw, th);
-
-    uint16_t rpad = tw < w ? (w - tw) >> 1 : 0;
-    uint16_t lpad = tw < w ? w - tw - rpad : 0;
-
-    if (lpad)
-        pen.fill_rectangle(x, y, lpad, h);
-    if (rpad)
-        pen.fill_rectangle(x + lpad + tw, y, rpad, h);
-
-    uint16_t bpad = th < h ? (h - th) >> 1 : 0;
-    uint16_t tpad = th < h ? h - th - bpad : 0;
-
-    if (tpad)
-        pen.fill_rectangle(x + lpad, y, tw, tpad);
-    if (bpad)
-        pen.fill_rectangle(x + lpad, y + th + tpad, tw, bpad);
-
-    //pen_t<display>(black).rectangle(x-1+lpad, y-1+tpad, tw+2, th+2);
-    pen_t<display>(black).rectangle(x-1, y-1, w+2, h+2);
-    tr.set_pos(x + lpad, y + tpad - font.min_y);
-    tr.write(s);
-    display::render();
-}
+struct unit_t {};
 
 void run()
 {
     display::initialize("Display Emulator", 3);
     display::clear(slate_gray);
-    pen_t<display> pen(white);
+    pen_t<display> pen(dark_red);
 
     pen.rectangle(0, 0, display::width(), display::height());
-    display::render();
-
-    text_box(50,  50, 100, 25, fontlib::cmunss_20, yellow, dark_red, "-");
-    text_box(50, 100, 100, 25, fontlib::cmunss_20, yellow, rebecca_purple, "Hello World!");
-    text_box(50, 150, 50, 25, fontlib::cmunss_20, yellow, teal, "j-g");
-    text_box(130, 150, 10, 15, fontlib::cmunss_20, yellow, olive_drab, "-----H j-g-----");
-    text_box(20, 200, 50, 25, fontlib::cmunss_20, yellow, lime_green, "//");
-    text_box(130, 200, 50, 25, fontlib::cmunss_20, yellow, orange_red, "l//g");
 
     bool quit = false;
-    font_t font = fontlib::cmunrm_48;
-    text_renderer_t<display> tr(font, white, red, true);
 
-    uint16_t r = font.start_row();
+    widget_t<display, unit_t> b0(fontlib::cmunss_20, yellow, crimson, 50, 50, 100, 25, [](auto _) { return "-"; }, true);
+    widget_t<display, unit_t> b1(fontlib::cmunss_20, yellow, rebecca_purple, 50, 100, 100, 25, [](auto _) { return "Hello World!"; }, true);
+    widget_t<display, unit_t> b2(fontlib::cmunss_20, yellow, olive_drab, 130, 150, 10, 15, [](auto _) { return "-----H j-g-----"; }, true);
+    widget_t<display, unit_t> b3(fontlib::cmunss_20, yellow, lime_green, 20, 200, 50, 25, [](auto _) { return "//"; }, true);
+    widget_t<display, unit_t> b4(fontlib::cmunss_20, yellow, orange_red, 130, 200, 50, 25, [](auto _) { return "l//g"; }, true);
 
-    tr.set_pos(0, r);
+    display::render();
+
+    widget_t<display, char*> txbox(fontlib::cmunrm_48, dim_gray, wheat, 160, 50, 50, 40, [](auto s) { return s; });
+    widget_t<display, int> ibox(fontlib::cmuntt_24, white, web_gray, 10, 10, 50, 30, [](int x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, true);
 
     while (!quit)
     {
-        char c[2] = { 0, 0 };
+        int x;
 
-        if (keyboard_poll(c[0]))
-            switch (c[0])
+        switch (poll_event(x))
+        {
+        case ev_quit:
+            quit = true;
+            break;
+        case ev_key:
             {
-            case 0:
-                quit = true;
-                break;
-            case '\r':
-                r += font.line_spacing();
-                tr.set_pos(0, r);
-                break;
-            default:
-                text_box(160, 50, 50, 40, font, dim_gray, wheat, c);
+                char c[2] = { static_cast<char>(x), 0 };
+                txbox = c;
                 display::render();
+                break;
             }
+        case ev_wheel:
+            ibox = x;
+            display::render();
+            break;
+        default: ;
+        }
     }
 
     display::shutdown();
