@@ -159,7 +159,7 @@ template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_rn = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ci = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ri = 0;
 
-enum event_t { ev_none, ev_quit, ev_key, ev_wheel };
+enum event_t { ev_none, ev_quit, ev_key, ev_wheel, ev_btn };
 
 event_t poll_event(int& c)
 {
@@ -197,6 +197,8 @@ event_t poll_event(int& c)
     case SDL_MOUSEWHEEL:
         c = e.wheel.y;
         return ev_wheel;
+    case SDL_MOUSEBUTTONDOWN:
+        return ev_btn;
     default:
         return ev_none;
     }
