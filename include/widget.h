@@ -5,13 +5,22 @@
 #include <draw.h>
 #include <functional>
 
+struct iwidget
+{
+    typedef color::color_t color_t;
+
+    virtual void fgbg(color_t fg, color_t bg) = 0;
+    virtual void edit(int i) = 0;
+};
+
 template<typename DISPLAY, typename T>
-class widget_t
+class widget_t: public iwidget
 {
 public:
     typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
     typedef std::function<const char*(T)> show_t;
+    typedef std::function<void(T&, int i)> edit_t;
 
     widget_t
         ( const font_t& font
@@ -22,10 +31,11 @@ public:
         , uint16_t w
         , uint16_t h
         , show_t show
+        , edit_t edit = 0
         , bool initial_render = false
         )
     {
-        setup(font, fg, bg, x, y, w, h, show, initial_render);
+        setup(font, fg, bg, x, y, w, h, show, edit, initial_render);
     }
 
     void setup
@@ -37,6 +47,7 @@ public:
         , uint16_t w
         , uint16_t h
         , show_t show
+        , edit_t edit = 0
         , bool initial_render = false
         )
     {
@@ -48,6 +59,7 @@ public:
         m_w = w;
         m_h = h;
         m_show = show;
+        m_edit = edit;
 
         if (initial_render)
             render();
@@ -97,10 +109,27 @@ public:
         tr.write(s);
     }
 
+    virtual void fgbg(color_t fg, color_t bg)
+    {
+        m_fg = fg;
+        m_bg = bg;
+        render();
+    }
+
+    virtual void edit(int i)
+    {
+        if (m_edit)
+        {
+            m_edit(m_value, i);
+            render();
+        }
+    }
+
 private:
     T               m_value;
     uint16_t        m_x, m_y, m_w, m_h;
     show_t          m_show;
+    edit_t          m_edit;
     const font_t    *m_font;
     color_t         m_fg;
     color_t         m_bg;
