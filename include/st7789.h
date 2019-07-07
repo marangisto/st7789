@@ -238,6 +238,7 @@ private:
         dev::wait_idle();
         dcx::set();
         (dev::write(static_cast<uint8_t>(args)), ...);
+        dev::wait_idle();
     }
 };
 
