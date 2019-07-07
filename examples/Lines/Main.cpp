@@ -15,7 +15,8 @@ using namespace st7789;
 using namespace color;
 using namespace graphics;
 
-typedef st7789_t<1, PA5, PA7, PC5, PC4> display;
+//typedef st7789_t<1, PA5, PA7, PC5, PC4> display;    // STM32F051 DISCOVERY
+typedef st7789_t<3, PC10, PC12, PC11, PD2> display;    // NUCLEO STM32G431
 
 static void squares(color_t bg, color_t fg)
 {

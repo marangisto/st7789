@@ -53,9 +53,10 @@ template
 class st7789_t
 {
 public:
+    template<spi::spi_clock_divider_t PRESCALE = spi::fpclk_256>
     static void setup()
     {
-        dev::template setup<spi::mode_3, spi::msb_first, spi::fpclk_2, spi::high_speed>();
+        dev::template setup<spi::mode_3, spi::msb_first, PRESCALE, spi::high_speed>();
 
         res::setup();                               // display controller reset
         dcx::setup();                               // data / command selection
