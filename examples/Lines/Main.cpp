@@ -16,7 +16,7 @@ using namespace color;
 using namespace graphics;
 
 //typedef st7789_t<1, PA5, PA7, PC5, PC4> display;    // STM32F051 DISCOVERY
-typedef st7789_t<3, PC10, PC12, PC11, PD2> display;    // NUCLEO STM32G431
+typedef st7789_t<1, PA5, PA7, PC7, PB6> display;    // NUCLEO-STM32G431
 
 static void squares(color_t bg, color_t fg)
 {
@@ -46,7 +46,7 @@ static void circles(color_t bg, color_t fg)
 
 int main()
 {
-    display::setup();
+    display::setup<spi::fpclk_8>();
 
     for (;;)
     {
