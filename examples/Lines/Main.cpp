@@ -15,8 +15,13 @@ using namespace st7789;
 using namespace color;
 using namespace graphics;
 
-//typedef st7789_t<1, PA5, PA7, PC5, PC4> display;    // STM32F051 DISCOVERY
+#if defined(STM32F051)
+typedef st7789_t<1, PA5, PA7, PC5, PC4> display;    // STM32F051-DISCOVERY
+static const spi::spi_clock_divider_t display_spi_prescale = spi::fpclk_2;
+#elif defined(STM32G431)
 typedef st7789_t<1, PA5, PA7, PC7, PB6> display;    // NUCLEO-STM32G431
+static const spi::spi_clock_divider_t display_spi_prescale = spi::fpclk_8;
+#endif
 
 static void squares(color_t bg, color_t fg)
 {
@@ -46,7 +51,7 @@ static void circles(color_t bg, color_t fg)
 
 int main()
 {
-    display::setup<spi::fpclk_8>();
+    display::setup<display_spi_prescale>();
 
     for (;;)
     {
