@@ -33,19 +33,22 @@ void run()
 
     xy_plot_t<display> plot;
 
-    plot.setup(10, 100, 100, 75, black);
-    display::render();
+    plot.setup(10, 100, 100, 75, gray, black);
 
     static const float pi = 3.141592654;
-    static const uint16_t n = 50;
+    static const uint16_t n = 100;
     static float xs[n], ys[n];
 
-    plot.viewport(0, -1, 2 * pi, 1);
+    plot.viewport(-15, -0.20, 15, 1);
+    plot.clear();
+    display::render();
+
+    auto sinc = [](float x) { return x != 0 ? sin(x) / x : 1; };
 
     for (uint16_t i = 0; i < n; ++i)
     {
-        xs[i] = i * 2 * pi / n;
-        ys[i] = sin(xs[i]);
+        xs[i] = 30 * i / (n - 1) - 15;
+        ys[i] = sinc(xs[i]);
     }
 
     plot.line_plot(xs, ys, n, red);
