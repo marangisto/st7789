@@ -54,7 +54,7 @@ class st7789_t
 {
 public:
     template<spi::spi_clock_divider_t PRESCALE = spi::fpclk_256>
-    static void setup()
+    static void setup(color_t color = 0)
     {
         dev::template setup<spi::mode_3, spi::msb_first, PRESCALE, spi::high_speed>();
 
@@ -75,7 +75,7 @@ public:
         write_cmd(RASET, 0, 0, 0, TFT_HEIGHT - 1);  // row address set
         write_cmd(DISPON);                          // display-on
         write_cmd(INVON);                           // inverted mode
-        clear();
+        clear(color);
     }
 
     static void clear(color_t color = 0)
@@ -85,7 +85,7 @@ public:
         set_row_addr(0, MEM_HEIGHT - 1);
         write_cmd(RAMWR);                           // write pixel data
         for (uint32_t i = 0; i < TFT_WIDTH * MEM_HEIGHT; ++i)
-            dev::write(c);
+            internal_write16(c);
     }
 
     static inline void start() { write_cmd(RAMWR); }
@@ -96,7 +96,7 @@ public:
     }
 
     __attribute__((always_inline))
-    static inline void write(color_t c) { dev::write(internal::color2st7789(c)); }
+    static inline void write(color_t c) { internal_write16(internal::color2st7789(c)); }
 
     static constexpr uint16_t width() { return TFT_WIDTH; }
     static constexpr uint16_t height() { return TFT_HEIGHT; }
@@ -133,7 +133,7 @@ public:
         uint16_t c7789 = internal::color2st7789(c);
 
         for (uint16_t i = 0; i < n; ++i)
-            dev::write(c7789);
+            internal_write16(c7789);
     }
 
     static void set_pixels_v(uint16_t x, uint16_t y, uint16_t n, color_t c)
@@ -145,7 +145,7 @@ public:
         uint16_t c7789 = internal::color2st7789(c);
 
         for (uint16_t i = 0; i < n; ++i)
-            dev::write(c7789);
+            internal_write16(c7789);
     }
 
 private:
@@ -234,11 +234,18 @@ private:
     static void write_cmd(command_t cmd, Args&&... args)
     {
         dcx::clear();
-        dev::write(static_cast<uint8_t>(cmd));
+        dev::write8(cmd);
         dev::wait_idle();
         dcx::set();
-        (dev::write(static_cast<uint8_t>(args)), ...);
+        (dev::write8(args), ...);
         dev::wait_idle();
+    }
+
+    __attribute__((always_inline))
+    static void internal_write16(uint16_t x)
+    {
+        dev::write8(x & 0xff);
+        dev::write8(x >> 8);
     }
 };
 
