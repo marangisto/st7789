@@ -1,22 +1,12 @@
+#include "../display.h"
 #include <stdlib.h>
 #include <cstdio>
 #include <gpio.h>
-#include <st7789.h>
 #include <text.h>
 
-using namespace hal;
 using namespace gpio;
-using namespace st7789;
 using namespace fontlib;
 using namespace text;
-
-#if defined(STM32F051)
-typedef st7789_t<1, PA5, PA7, PC5, PC4> display;    // STM32F051-DISCOVERY
-static const spi::spi_clock_divider_t display_spi_prescale = spi::fpclk_2;
-#elif defined(STM32G431)
-typedef st7789_t<1, PA5, PA7, PC7, PB6> display;    // NUCLEO-STM32G431
-static const spi::spi_clock_divider_t display_spi_prescale = spi::fpclk_8;
-#endif
 
 constexpr double pi = 3.14159265358979323846;
 
