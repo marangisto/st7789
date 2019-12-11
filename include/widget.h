@@ -20,7 +20,7 @@ public:
     typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
     typedef std::function<const char*(T)> show_t;
-    typedef std::function<void(T&, int i)> edit_t;
+    typedef std::function<void(volatile T&, int i)> edit_t;
 
     widget_t
         ( const font_t& font
@@ -51,6 +51,7 @@ public:
         , bool initial_render = false
         )
     {
+        m_value = T(0);
         m_font = &font;
         m_fg = fg;
         m_bg = bg;
@@ -126,7 +127,7 @@ public:
     }
 
 private:
-    T               m_value;
+    volatile T      m_value;
     uint16_t        m_x, m_y, m_w, m_h;
     show_t          m_show;
     edit_t          m_edit;
