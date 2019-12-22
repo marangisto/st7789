@@ -12,7 +12,6 @@ typedef std::pair<pixel_t, pixel_t> dims_t;
 struct rect_t
 {
     rect_t(): x(0), y(0), w(0), h(0) {}
-//    rect_t(pixel_t _w, pixel_t _h): x(0), y(0), w(_w), h(_h) {}
 
     pixel_t x, y, w, h;
 };
@@ -189,7 +188,7 @@ public:
         , color_t bg
         )
     {
-        m_value = text;
+        m_text = text;
         m_font = &font;
         m_fg = fg;
         m_bg = bg;
@@ -241,7 +240,7 @@ public:
 
     virtual void render()
     {
-        const char *s = m_value;
+        const char *s = m_text;
 
         text::text_renderer_t<DISPLAY> tr(*m_font, m_fg, m_bg, true);
         graphics::pen_t<DISPLAY> pen(m_bg);
@@ -269,12 +268,33 @@ public:
         tr.write(s);
     }
 
-private:
-    const char      *m_value;
+protected:
+    const char      *m_text;
     rect_t          m_rect;
     const font_t    *m_font;
     color_t         m_fg;
     color_t         m_bg;
+};
+
+template<typename DISPLAY, typename TRAITS>
+class valuebox_t: public label_t<DISPLAY>
+{
+public:
+    typedef label_t<DISPLAY> base;
+    typedef typename TRAITS::T T;
+
+    operator T() const { return m_value; }
+
+    T operator=(const T& x)
+    {
+        m_value = x;
+        base::m_text = TRAITS::show(m_value);
+        base::render();
+        return m_value;
+    }
+
+private:
+    volatile T m_value;
 };
 
 template<typename DISPLAY>

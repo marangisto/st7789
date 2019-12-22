@@ -20,16 +20,24 @@ struct unit_t
     void operator=(const unit_t&) volatile {}
 };
 
+struct int_box_traits
+{
+    typedef int T;
+    static const char *show(int x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
+    static void edit(volatile int&, int i) {}
+};
 
 template<typename DISPLAY>
 struct gui_t
 {
     void setup()
     {
+        i1.setup("", fontlib::cmunss_20, yellow, blue);
         l1.setup("foo", fontlib::cmunss_20, yellow, crimson);
         l2.setup("bar", fontlib::cmunss_20, yellow, slate_gray);
         l3.setup("baz!", fontlib::cmunss_20, yellow, crimson);
         c1.setup();
+        c1.append(&i1);
         c1.append(&l1);
         c1.append(&l2);
         c1.append(&l3);
@@ -54,6 +62,7 @@ struct gui_t
         q1.render();
     }
 
+    valuebox_t<DISPLAY, int_box_traits> i1;
     label_t<DISPLAY> l1, l2, l3;
     label_t<DISPLAY> r1, r2, r3;
     border_t<DISPLAY> b1, b2;
@@ -75,6 +84,7 @@ void run()
 
     gui.setup();
     gui.render();
+    gui.i1 = 55;
 
     /*
     widget_t<display, unit_t> b0(fontlib::cmunss_20, yellow, crimson, 50, 50, 100, 25, [](auto _) { return "-"; }, 0, true);
