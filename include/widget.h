@@ -276,25 +276,111 @@ protected:
     color_t         m_bg;
 };
 
-template<typename DISPLAY, typename TRAITS>
-class valuebox_t: public label_t<DISPLAY>
+template<typename T>
+struct read_only
+{
+    static void edit(volatile T&, int) {}
+};
+
+template<typename DISPLAY, typename SHOW, typename EDIT = read_only<typename SHOW::T> >
+class valuebox_t: public ilayout
 {
 public:
-    typedef label_t<DISPLAY> base;
-    typedef typename TRAITS::T T;
+    typedef typename SHOW::T T;
+    typedef color::color_t color_t;
+    typedef fontlib::font_t font_t;
+
+    void setup
+        ( const font_t& font
+        , color_t fg
+        , color_t bg
+        , const T& value = T()
+        )
+    {
+        m_font = &font;
+        m_fg = fg;
+        m_bg = bg;
+        m_value = value;
+    }
 
     operator T() const { return m_value; }
 
     T operator=(const T& x)
     {
         m_value = x;
-        base::m_text = TRAITS::show(m_value);
-        base::render();
+        render();
         return m_value;
     }
 
+    /*
+    virtual void fgbg(color_t fg, color_t bg)
+    {
+        m_fg = fg;
+        m_bg = bg;
+        render();
+    }
+
+    virtual void edit(int i)
+    {
+        if (m_edit)
+        {
+            m_edit(m_value, i);
+            render();
+        }
+    }
+    */
+
+    // ilayout
+
+    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
+    {
+        m_rect.w = wmax;
+        m_rect.h = std::min(hmax, m_font->line_spacing());
+        return dims_t(m_rect.w, m_rect.h);
+    }
+
+    virtual void layout(pixel_t x, pixel_t y)
+    {
+        m_rect.x = x;
+        m_rect.y = y;
+    }
+
+    virtual void render()
+    {
+        const char *s = SHOW::show(m_value);
+
+        text::text_renderer_t<DISPLAY> tr(*m_font, m_fg, m_bg, true);
+        graphics::pen_t<DISPLAY> pen(m_bg);
+        uint16_t tw, th;
+
+        tr.bounding_box(s, tw, th);
+
+        uint16_t rpad = tw < m_rect.w ? (m_rect.w - tw) >> 1 : 0;
+        uint16_t lpad = tw < m_rect.w ? m_rect.w - tw - rpad : 0;
+
+        if (lpad)
+            pen.fill_rectangle(m_rect.x, m_rect.y, lpad, m_rect.h);
+        if (rpad)
+            pen.fill_rectangle(m_rect.x + lpad + tw, m_rect.y, rpad, m_rect.h);
+
+        uint16_t bpad = th < m_rect.h ? (m_rect.h - th) >> 1 : 0;
+        uint16_t tpad = th < m_rect.h ? m_rect.h - th - bpad : 0;
+
+        if (tpad)
+            pen.fill_rectangle(m_rect.x + lpad, m_rect.y, tw, tpad);
+        if (bpad)
+            pen.fill_rectangle(m_rect.x + lpad, m_rect.y + th + tpad, tw, bpad);
+
+        tr.set_pos(m_rect.x + lpad, m_rect.y + tpad - m_font->min_y);
+        tr.write(s);
+    }
+
 private:
-    volatile T m_value;
+    volatile T      m_value;
+    rect_t          m_rect;
+    const font_t    *m_font;
+    color_t         m_fg;
+    color_t         m_bg;
 };
 
 template<typename DISPLAY>

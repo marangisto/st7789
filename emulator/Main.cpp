@@ -20,11 +20,21 @@ struct unit_t
     void operator=(const unit_t&) volatile {}
 };
 
-struct int_box_traits
+struct show_str
+{
+    typedef const char *T;
+    static const char *show(T x) { return x; }
+};
+
+struct show_int
 {
     typedef int T;
-    static const char *show(int x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
-    static void edit(volatile int&, int i) {}
+    static const char *show(T x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
+};
+
+struct edit_int
+{
+    static void edit(volatile int& x, int i) {}
 };
 
 template<typename DISPLAY>
@@ -32,7 +42,7 @@ struct gui_t
 {
     void setup()
     {
-        i1.setup("", fontlib::cmunss_20, yellow, blue);
+        i1.setup(fontlib::cmunss_20, yellow, blue);
         l1.setup("foo", fontlib::cmunss_20, yellow, crimson);
         l2.setup("bar", fontlib::cmunss_20, yellow, slate_gray);
         l3.setup("baz!", fontlib::cmunss_20, yellow, crimson);
@@ -62,7 +72,7 @@ struct gui_t
         q1.render();
     }
 
-    valuebox_t<DISPLAY, int_box_traits> i1;
+    valuebox_t<DISPLAY, show_int> i1;
     label_t<DISPLAY> l1, l2, l3;
     label_t<DISPLAY> r1, r2, r3;
     border_t<DISPLAY> b1, b2;
