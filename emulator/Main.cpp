@@ -34,27 +34,30 @@ struct show_int
 
 struct edit_int
 {
-    static void edit(volatile int& x, int i) {}
+    static void edit(volatile int& x, int i) { x += i; }
 };
 
 template<typename DISPLAY>
 struct gui_t
 {
+    typedef valuebox_t<DISPLAY, show_str> label;
+    typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
+
     void setup()
     {
         i1.setup(fontlib::cmunss_20, yellow, blue);
-        l1.setup("foo", fontlib::cmunss_20, yellow, crimson);
-        l2.setup("bar", fontlib::cmunss_20, yellow, slate_gray);
-        l3.setup("baz!", fontlib::cmunss_20, yellow, crimson);
+        l1.setup(fontlib::cmunss_20, yellow, crimson, "foo");
+        l2.setup(fontlib::cmunss_20, yellow, crimson, "bar");
+        l3.setup(fontlib::cmunss_20, yellow, crimson, "baz!");
         c1.setup();
         c1.append(&i1);
         c1.append(&l1);
         c1.append(&l2);
         c1.append(&l3);
         b1.setup(&c1, white, 1);
-        r1.setup("ofo", fontlib::cmunss_20, yellow, crimson);
-        r2.setup("abr", fontlib::cmunss_20, yellow, slate_gray);
-        r3.setup("abz!", fontlib::cmunss_20, yellow, crimson);
+        r1.setup(fontlib::cmunss_20, yellow, crimson, "ofo");
+        r2.setup(fontlib::cmunss_20, yellow, crimson, "abr");
+        r3.setup(fontlib::cmunss_20, yellow, crimson, "abz!");
         c2.setup();
         c2.append(&r1);
         c2.append(&r2);
@@ -72,9 +75,9 @@ struct gui_t
         q1.render();
     }
 
-    valuebox_t<DISPLAY, show_int> i1;
-    label_t<DISPLAY> l1, l2, l3;
-    label_t<DISPLAY> r1, r2, r3;
+    intbox i1;
+    label l1, l2, l3;
+    label r1, r2, r3;
     border_t<DISPLAY> b1, b2;
     vertical_t<DISPLAY> c1, c2;
     horizontal_t<DISPLAY> q1;
@@ -95,17 +98,6 @@ void run()
     gui.setup();
     gui.render();
     gui.i1 = 55;
-
-    /*
-    widget_t<display, unit_t> b0(fontlib::cmunss_20, yellow, crimson, 50, 50, 100, 25, [](auto _) { return "-"; }, 0, true);
-    widget_t<display, unit_t> b1(fontlib::cmunss_20, yellow, rebecca_purple, 130, 80, 80, 25, [](auto _) { return "Hello World!"; }, 0, true);
-    widget_t<display, unit_t> b2(fontlib::cmunss_20, yellow, olive_drab, 130, 150, 10, 15, [](auto _) { return "-----H j-g-----"; }, 0, true);
-    widget_t<display, unit_t> b3(fontlib::cmunss_20, yellow, lime_green, 20, 200, 50, 25, [](auto _) { return "//"; }, 0, true);
-    widget_t<display, unit_t> b4(fontlib::cmunss_20, yellow, orange_red, 130, 200, 50, 25, [](auto _) { return "l//g"; }, 0, true);
-    */
-
-    widget_t<display, char*> txbox(fontlib::cmunrm_48, dim_gray, wheat, 160, 10, 50, 40, [](auto s) { return s; }, 0);
-    widget_t<display, int> ibox(fontlib::cmuntt_24, white, web_gray, 10, 10, 50, 30, [](int x) { sprintf(tmp_buf, "%d", x); return tmp_buf; },0,  true);
 
     xy_plot_t<display> plot;
 
@@ -142,12 +134,12 @@ void run()
         case ev_key:
             {
                 char c[2] = { static_cast<char>(x), 0 };
-                txbox = c;
+                gui.r3 = c;
                 display::render();
                 break;
             }
         case ev_wheel:
-            ibox = x;
+            gui.i1.edit(x);
             display::render();
             break;
         default: ;
