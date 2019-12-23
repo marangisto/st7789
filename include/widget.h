@@ -28,6 +28,7 @@ struct ifocus
     typedef color::color_t color_t;
 
     virtual void fgbg(color_t fg, color_t bg) = 0;
+    virtual void focus(bool b) = 0;
     virtual void edit(int i) = 0;
 };
 
@@ -38,7 +39,7 @@ struct read_only
 };
 
 template<typename DISPLAY, typename SHOW, typename EDIT = read_only<typename SHOW::T> >
-class valuebox_t: public ilayout, ifocus
+class valuebox_t: public ilayout, public ifocus
 {
 public:
     typedef typename SHOW::T T;
@@ -54,7 +55,7 @@ public:
     {
         m_font = &font;
         m_fg = fg;
-        m_bg = bg;
+        m_xg = m_bg = bg;
         m_value = value;
     }
 
@@ -121,6 +122,12 @@ public:
         render();
     }
 
+    virtual void focus(bool b)
+    {
+        m_bg = b ? color::black : m_xg;
+        render();
+    }
+
     virtual void edit(int i)
     {
         EDIT::edit(m_value, i);
@@ -133,6 +140,7 @@ private:
     const font_t    *m_font;
     color_t         m_fg;
     color_t         m_bg;
+    color_t         m_xg;
 };
 
 template<typename DISPLAY>

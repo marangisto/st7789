@@ -10,16 +10,6 @@ using namespace fontlib;
 typedef display_t<240, 240> display;
 static char tmp_buf[256];
 
-struct unit_t
-{
-    unit_t() {}
-    unit_t(int) {}
-    constexpr unit_t(const unit_t&) {}
-    unit_t(volatile const unit_t&) {}
-    constexpr void operator=(const unit_t&) {}
-    void operator=(const unit_t&) volatile {}
-};
-
 struct show_str
 {
     typedef const char *T;
@@ -37,11 +27,25 @@ struct edit_int
     static void edit(volatile int& x, int i) { x += i; }
 };
 
+template<int DECIMALS>
+struct show_float
+{
+    typedef float T;
+    static const char *show(T x) { sprintf(tmp_buf, "%.*f", DECIMALS, x); return tmp_buf; }
+};
+
+template<int DIVISOR>
+struct edit_float
+{
+    static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
+};
+
 template<typename DISPLAY>
 struct gui_t
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
+    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<25> > floatbox;
 
     void setup()
     {
@@ -55,10 +59,12 @@ struct gui_t
         c1.append(&l2);
         c1.append(&l3);
         b1.setup(&c1, white, 1);
+        f1.setup(fontlib::cmunss_20, yellow, blue);
         r1.setup(fontlib::cmunss_20, yellow, crimson, "ofo");
         r2.setup(fontlib::cmunss_20, yellow, crimson, "abr");
         r3.setup(fontlib::cmunss_20, yellow, crimson, "abz!");
         c2.setup();
+        c2.append(&f1);
         c2.append(&r1);
         c2.append(&r2);
         c2.append(&r3);
@@ -68,6 +74,8 @@ struct gui_t
         q1.append(&b2);
         q1.constrain(10, 120, 10, 240); // fixme: what about zero min?
         q1.layout(120, 0);
+        focus[0] = &i1;
+        focus[1] = &f1;
     }
 
     void render()
@@ -75,12 +83,33 @@ struct gui_t
         q1.render();
     }
 
+    void navigate(int dir)
+    {
+        static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
+
+        focus[pos]->focus(false);
+        if (dir > 0 && ++pos >= npos)
+            pos = 0;
+        if (dir < 0 && pos-- == 0)
+            pos = npos - 1;
+        focus[pos]->focus(true);
+    }
+
+    void edit(int i)
+    {
+        focus[pos]->edit(i);
+    }
+
     intbox i1;
+    floatbox f1;
     label l1, l2, l3;
     label r1, r2, r3;
     border_t<DISPLAY> b1, b2;
     vertical_t<DISPLAY> c1, c2;
     horizontal_t<DISPLAY> q1;
+
+    ifocus *focus[2];
+    uint8_t pos = 0;
 };
 
 void run()
@@ -121,6 +150,7 @@ void run()
 
     plot.line_plot(xs, ys, n, red);
     display::render();
+    bool navigate = true;
 
     while (!quit)
     {
@@ -136,10 +166,14 @@ void run()
                 char c[2] = { static_cast<char>(x), 0 };
                 gui.r3 = c;
                 display::render();
+                navigate = !navigate;
                 break;
             }
         case ev_wheel:
-            gui.i1.edit(x);
+            if (navigate)
+                gui.navigate(x);
+            else
+                gui.edit(x);
             display::render();
             break;
         default: ;
