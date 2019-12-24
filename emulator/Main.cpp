@@ -87,12 +87,17 @@ struct gui_t
     {
         static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
 
-        focus[pos]->focus(false);
+        focus[pos]->defocus();
         if (dir > 0 && ++pos >= npos)
             pos = 0;
         if (dir < 0 && pos-- == 0)
             pos = npos - 1;
-        focus[pos]->focus(true);
+        focus[pos]->focus(light_green);
+    }
+
+    void edit_state(bool b)
+    {
+        focus[pos]->focus(b ? orange_red : light_green);
     }
 
     void edit(int i)
@@ -167,6 +172,8 @@ void run()
                 gui.r3 = c;
                 display::render();
                 navigate = !navigate;
+                gui.edit_state(!navigate);
+                display::render();
                 break;
             }
         case ev_wheel:
