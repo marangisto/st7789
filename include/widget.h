@@ -27,7 +27,6 @@ struct ifocus
 {
     typedef color::color_t color_t;
 
-    virtual void fgbg(color_t fg, color_t bg) = 0;
     virtual void focus(bool b) = 0;
     virtual void edit(int i) = 0;
 };
@@ -55,7 +54,7 @@ public:
     {
         m_font = &font;
         m_fg = fg;
-        m_xg = m_bg = bg;
+        m_bg = bg;
         m_value = value;
     }
 
@@ -111,20 +110,16 @@ public:
 
         tr.set_pos(m_rect.x + lpad, m_rect.y + tpad - m_font->min_y);
         tr.write(s);
+
+        if (m_focus)
+            graphics::pen_t<DISPLAY>(color::white).rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
     }
 
     // ifocus
 
-    virtual void fgbg(color_t fg, color_t bg)   // this should be someting more like focus (true / false)
-    {
-        m_fg = fg;
-        m_bg = bg;
-        render();
-    }
-
     virtual void focus(bool b)
     {
-        m_bg = b ? color::black : m_xg;
+        m_focus = b;
         render();
     }
 
@@ -140,7 +135,7 @@ private:
     const font_t    *m_font;
     color_t         m_fg;
     color_t         m_bg;
-    color_t         m_xg;
+    bool            m_focus;
 };
 
 template<typename DISPLAY>
