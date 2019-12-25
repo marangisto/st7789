@@ -198,6 +198,13 @@ event_t poll_event(int& c)
         c = e.wheel.y;
         return ev_wheel;
     case SDL_MOUSEBUTTONDOWN:
+        switch (e.button.button)
+        {
+        case SDL_BUTTON_LEFT: c = 0; break;
+        case SDL_BUTTON_MIDDLE: c = 1; break;
+        case SDL_BUTTON_RIGHT: c = 2; break;
+        default: c = -1;
+        }
         return ev_btn;
     default:
         return ev_none;
