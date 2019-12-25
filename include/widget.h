@@ -51,12 +51,14 @@ public:
         , color_t fg
         , color_t bg
         , const T& value = T()
+        , const bool *quiet = 0
         )
     {
         m_font = &font;
         m_fg = fg;
         m_bg = m_frame = bg;
         m_value = value;
+        m_quiet = quiet;
     }
 
     operator T() const { return m_value; }
@@ -64,7 +66,8 @@ public:
     T operator=(const T& x)
     {
         m_value = x;
-        render();
+        if (m_quiet && !*m_quiet)
+            render();
         return m_value;
     }
 
@@ -143,6 +146,7 @@ private:
     color_t         m_fg;
     color_t         m_bg;
     color_t         m_frame;
+    const bool      *m_quiet;
 };
 
 template<typename DISPLAY>
