@@ -71,6 +71,8 @@ public:
         return m_value;
     }
 
+    const volatile T* ptr() const { return &m_value; }
+
     // ilayout
 
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
@@ -200,7 +202,7 @@ template<typename DISPLAY>
 class vertical_t: public ilayout
 {
 public:
-    static constexpr uint8_t max_children = 8;
+    static constexpr uint8_t max_children = 16;
 
     void setup()
     {
