@@ -1,9 +1,12 @@
 #pragma once
 
+#include <message.h>
 #include <text.h>
 #include <fontlib.h>
 #include <draw.h>
+#include <list.h>
 #include <functional>
+#include <variant>
 
 typedef uint16_t pixel_t;
 
@@ -280,5 +283,122 @@ public:
             x += base::m_size[i];
         }
     }
+};
+
+template<typename DISPLAY>
+class screen_t
+{
+public:
+    typedef color::color_t color_t;
+
+    void setup(ilayout *layout, list<ifocus*>& navigation, color_t normal, color_t active)
+    {
+        m_normal = normal;
+        m_active = active;
+        m_panel.setup();
+        m_panel.append(layout);
+        m_panel.constrain(10, DISPLAY::width(), 10, DISPLAY::height()); // FIXME: why minbounds?
+        m_panel.layout(0, 0);
+        m_navigation.splice(m_navigation.end(), navigation);
+        m_focus = m_navigation.begin();
+        (*m_focus)->focus(m_normal);
+    }
+
+    void render()
+    {
+        m_panel.render();
+    }
+
+    bool handle_message(const message_t& m)
+    {
+        switch (m.index())
+        {
+        case button_press:
+            switch (std::get<button_press>(m))
+            {
+            case 0: // encoder button
+                m_state = m_state == navigating ? editing : navigating;
+                (*m_focus)->focus(m_state == editing ? m_active : m_normal);
+                break;
+            case 1: // top-left
+                return false;           // exit window
+            case 2: // bottom-left
+                break;
+            case 3: // top-right
+                return false;           // exit window
+            case 4: // bottom-right
+                break;
+            default: ;  // unhandled button
+            }
+            break;
+        case encoder_delta:
+            if (m_state == navigating)
+            {
+                int dir = std::get<encoder_delta>(m);
+
+                (*m_focus)->defocus();
+                if (dir > 0 && ++m_focus == m_navigation.end())
+                    m_focus = m_navigation.begin();
+                else if (dir < 0 && --m_focus == m_navigation.end())
+                    --m_focus;
+                (*m_focus)->focus(m_normal);
+            }
+            else
+                (*m_focus)->edit(std::get<encoder_delta>(m));
+            break;
+        default: ;      // unhandled message
+        }
+
+        return true;   // take more messages
+    }
+
+private:
+    enum state_t { navigating, editing };
+
+    horizontal_t<DISPLAY>   m_panel;
+    list<ifocus*>           m_navigation;
+    list_iterator<ifocus*>  m_focus;
+    state_t                 m_state;
+    color_t                 m_normal;
+    color_t                 m_active;
+};
+
+static char tmp_buf[256];   // FIXME: think of a more principled way to share this!
+
+struct show_str
+{
+    typedef const char *T;
+    static const char *show(T x) { return x; }
+};
+
+struct show_int
+{
+    typedef int T;
+    static const char *show(T x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
+};
+
+struct edit_int
+{
+    static void edit(volatile int& x, int i) { x += i; }
+};
+
+template<int DECIMALS>
+struct show_float
+{
+    typedef float T;
+    static const char *show(T x) { sprintf(tmp_buf, "%.*f", DECIMALS, x); return tmp_buf; }
+};
+
+template<int DIVISOR>
+struct edit_float
+{
+    static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
+};
+
+template<int DECIMALS>
+struct show_percent
+{
+    typedef float T;
+    static const char *show(T x) { sprintf(tmp_buf, "%.*f%%", DECIMALS, x * 100.0f); return tmp_buf; }
 };
 
