@@ -8,37 +8,6 @@ using namespace graphics;
 using namespace fontlib;
 
 typedef display_t<240, 240> display;
-static char tmp_buf[256];
-
-struct show_str
-{
-    typedef const char *T;
-    static const char *show(T x) { return x; }
-};
-
-struct show_int
-{
-    typedef int T;
-    static const char *show(T x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
-};
-
-struct edit_int
-{
-    static void edit(volatile int& x, int i) { x += i; }
-};
-
-template<int DECIMALS>
-struct show_float
-{
-    typedef float T;
-    static const char *show(T x) { sprintf(tmp_buf, "%.*f", DECIMALS, x); return tmp_buf; }
-};
-
-template<int DIVISOR>
-struct edit_float
-{
-    static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
-};
 
 template<typename DISPLAY>
 struct gui_t

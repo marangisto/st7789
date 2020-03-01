@@ -1,5 +1,5 @@
 CFLAGS = -O3 -fexceptions
-CPPFLAGS = -I../include -I../../fontlib/include
+CPPFLAGS = -std=gnu++17 -I../include -I../../fontlib/include -I../../hal/include
 LDFLAGS =
 FONTS = $(wildcard ../../fontlib/src/*.cpp)
 OBJECTS = $(FONTS:.cpp=.o)
