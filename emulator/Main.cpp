@@ -10,7 +10,7 @@ using namespace fontlib;
 typedef display_t<240, 240> display;
 
 template<typename DISPLAY>
-struct gui_t
+struct gui_t: public screen_t<DISPLAY>
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
@@ -18,73 +18,54 @@ struct gui_t
 
     void setup()
     {
-        i1.setup(fontlib::cmunss_20, yellow, blue);
-        l1.setup(fontlib::cmunss_20, yellow, crimson, "foo");
-        l2.setup(fontlib::cmunss_20, yellow, crimson, "bar");
-        l3.setup(fontlib::cmunss_20, yellow, crimson, "baz!");
+        i1.setup(fontlib::cmunss_20, yellow, steel_blue);
+        l1.setup(fontlib::cmunss_20, yellow, dark_green, "foo");
+        l2.setup(fontlib::cmunss_20, yellow, dark_green, "bar");
+        l3.setup(fontlib::cmunss_20, yellow, dark_green, "baz!");
         c1.setup();
         c1.append(&i1);
         c1.append(&l1);
         c1.append(&l2);
         c1.append(&l3);
-        b1.setup(&c1, white, 1);
-        f1.setup(fontlib::cmunss_20, yellow, blue);
-        r1.setup(fontlib::cmunss_20, yellow, crimson, "ofo");
-        r2.setup(fontlib::cmunss_20, yellow, crimson, "abr");
-        r3.setup(fontlib::cmunss_20, yellow, crimson, "abz!");
+        f1.setup(fontlib::cmunss_20, yellow, steel_blue);
+        r1.setup(fontlib::cmunss_20, yellow, dark_green, "ofo");
+        r2.setup(fontlib::cmunss_20, yellow, dark_green, "abr");
+        r3.setup(fontlib::cmunss_20, yellow, dark_green, "abz!");
         c2.setup();
         c2.append(&f1);
         c2.append(&r1);
         c2.append(&r2);
         c2.append(&r3);
-        b2.setup(&c2, black, 1);
         q1.setup();
-        q1.append(&b1);
-        q1.append(&b2);
-        q1.constrain(10, 120, 10, 240); // fixme: what about zero min?
-        q1.layout(120, 0);
-        focus[0] = &i1;
-        focus[1] = &f1;
-    }
+        q1.append(&c1);
+        q1.append(&c2);
 
-    void render()
-    {
-        q1.render();
-    }
+        list<ifocus*> navigation;
 
-    void navigate(int dir)
-    {
-        static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
+        navigation.push_back(&i1);
+        navigation.push_back(&f1);
 
-        focus[pos]->defocus();
-        if (dir > 0 && ++pos >= npos)
-            pos = 0;
-        if (dir < 0 && pos-- == 0)
-            pos = npos - 1;
-        focus[pos]->focus(light_green);
-    }
-
-    void edit_state(bool b)
-    {
-        focus[pos]->focus(b ? orange_red : light_green);
-    }
-
-    void edit(int i)
-    {
-        focus[pos]->edit(i);
+        screen_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
     }
 
     intbox i1;
     floatbox f1;
     label l1, l2, l3;
     label r1, r2, r3;
-    border_t<DISPLAY> b1, b2;
     vertical_t<DISPLAY> c1, c2;
     horizontal_t<DISPLAY> q1;
-
-    ifocus *focus[2];
-    uint8_t pos = 0;
 };
+
+static void print_message(const message_t& m)
+{
+    switch (m.index())
+    {
+        case button_press: printf("button_press: %d\n", std::get<button_press>(m)); break;
+        case encoder_delta: printf("encoder_delta: %d\n", std::get<encoder_delta>(m)); break;
+        case encoder_press: printf("encoder_press: .\n"); break;
+        default: printf("illegal message\n");    
+    }
+}
 
 void run()
 {
@@ -100,7 +81,6 @@ void run()
 
     gui.setup();
     gui.render();
-    gui.i1 = 55;
 
     xy_plot_t<display> plot;
 
@@ -124,37 +104,16 @@ void run()
 
     plot.line_plot(xs, ys, n, red);
     display::render();
-    bool navigate = true;
+    message_t m;
+    event_t e;
 
-    while (!quit)
-    {
-        int x;
-
-        switch (poll_event(x))
+    while ((e = poll_event(m)) != ev_quit)
+        if (e == ev_message)
         {
-        case ev_quit:
-            quit = true;
-            break;
-        case ev_key:
-            {
-                char c[2] = { static_cast<char>(x), 0 };
-                gui.r3 = c;
-                display::render();
-                navigate = !navigate;
-                gui.edit_state(!navigate);
-                display::render();
-                break;
-            }
-        case ev_wheel:
-            if (navigate)
-                gui.navigate(x);
-            else
-                gui.edit(x);
+            print_message(m);
+            gui.handle_message(m);
             display::render();
-            break;
-        default: ;
         }
-    }
 
     display::shutdown();
 }

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include "message.h"
 
 using namespace color;
 
@@ -159,9 +160,9 @@ template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_rn = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ci = 0;
 template<unsigned W, unsigned H> uint16_t display_t<W, H>::m_ri = 0;
 
-enum event_t { ev_none, ev_quit, ev_key, ev_wheel, ev_btn };
+enum event_t { ev_none, ev_message, ev_quit };
 
-event_t poll_event(int& c)
+event_t poll_event(message_t& m)
 {
     SDL_Event e;
 
@@ -176,15 +177,18 @@ event_t poll_event(int& c)
         {
             uint16_t uc = e.text.text[0];
 
+            if (uc == 'q')
+                return ev_quit;
             if (uc < 0x80)
             {
-                c = uc;
-                return ev_key;
+                m.emplace<button_press>(uc - '0');
+                return ev_message;
             }
             else
                 return ev_none;
         }
         break;
+        /*
     case SDL_KEYDOWN:
         switch (e.key.keysym.scancode)
         {
@@ -194,18 +198,19 @@ event_t poll_event(int& c)
         default:
             return ev_none;
         }
+        */
     case SDL_MOUSEWHEEL:
-        c = e.wheel.y;
-        return ev_wheel;
+        m.emplace<encoder_delta>(e.wheel.y);
+        return ev_message;
     case SDL_MOUSEBUTTONDOWN:
         switch (e.button.button)
         {
-        case SDL_BUTTON_LEFT: c = 0; break;
-        case SDL_BUTTON_MIDDLE: c = 1; break;
-        case SDL_BUTTON_RIGHT: c = 2; break;
-        default: c = -1;
+        case SDL_BUTTON_LEFT:
+            m.emplace<encoder_press>(unit);
+            return ev_message;
+        default: 
+            return ev_none;
         }
-        return ev_btn;
     default:
         return ev_none;
     }

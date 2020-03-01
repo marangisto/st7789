@@ -316,10 +316,6 @@ public:
         case button_press:
             switch (std::get<button_press>(m))
             {
-            case 0: // encoder button
-                m_state = m_state == navigating ? editing : navigating;
-                (*m_focus)->focus(m_state == editing ? m_active : m_normal);
-                break;
             case 1: // top-left
                 return false;           // exit window
             case 2: // bottom-left
@@ -330,6 +326,10 @@ public:
                 break;
             default: ;  // unhandled button
             }
+            break;
+        case encoder_press:
+            m_state = m_state == navigating ? editing : navigating;
+            (*m_focus)->focus(m_state == editing ? m_active : m_normal);
             break;
         case encoder_delta:
             if (m_state == navigating)

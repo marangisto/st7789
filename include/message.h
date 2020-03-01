@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <variant>
 
-enum message_tag_t { button_press, encoder_delta };
+enum unit_t { unit };   // FIXME: define elsewhere!
 
-typedef std::variant<uint8_t, int16_t> message_t;
+enum message_tag_t { button_press, encoder_delta, encoder_press };
+
+typedef std::variant<uint8_t, int16_t, unit_t> message_t;
 
