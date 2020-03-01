@@ -18,24 +18,16 @@ struct gui_t: public screen_t<DISPLAY>
 
     void setup()
     {
-        i1.setup(fontlib::cmunss_20, yellow, steel_blue);
-        l1.setup(fontlib::cmunss_20, yellow, dark_green, "foo");
-        l2.setup(fontlib::cmunss_20, yellow, dark_green, "bar");
-        l3.setup(fontlib::cmunss_20, yellow, dark_green, "baz!");
         c1.setup();
-        c1.append(&i1);
-        c1.append(&l1);
-        c1.append(&l2);
-        c1.append(&l3);
-        f1.setup(fontlib::cmunss_20, yellow, steel_blue);
-        r1.setup(fontlib::cmunss_20, yellow, dark_green, "ofo");
-        r2.setup(fontlib::cmunss_20, yellow, dark_green, "abr");
-        r3.setup(fontlib::cmunss_20, yellow, dark_green, "abz!");
+        c1.append(i1.setup(fontlib::cmunss_20, yellow, steel_blue));
+        c1.append(l1.setup(fontlib::cmunss_20, yellow, dark_green, "foo"));
+        c1.append(l2.setup(fontlib::cmunss_20, yellow, dark_green, "bar"));
+        c1.append(l3.setup(fontlib::cmunss_20, yellow, dark_green, "baz!"));
         c2.setup();
-        c2.append(&f1);
-        c2.append(&r1);
-        c2.append(&r2);
-        c2.append(&r3);
+        c2.append(f1.setup(fontlib::cmunss_20, yellow, steel_blue));
+        c2.append(r1.setup(fontlib::cmunss_20, yellow, dark_green, "ofo"));
+        c2.append(r2.setup(fontlib::cmunss_20, yellow, dark_green, "abr"));
+        c2.append(r3.setup(fontlib::cmunss_20, yellow, dark_green, "abz!"));
         q1.setup();
         q1.append(&c1);
         q1.append(&c2);
