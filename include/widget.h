@@ -35,6 +35,18 @@ struct ifocus
     virtual void edit(int i) = 0;
 };
 
+enum action_tag_t { no_action, push_window, pop_window };
+
+struct iwindow;
+
+typedef std::variant<unit_t, iwindow*, unsigned> action_t;
+
+struct iwindow
+{
+    virtual void render() = 0;
+    virtual action_t handle_message(const message_t& m) = 0;
+};
+
 template<typename T>
 struct read_only
 {
@@ -49,7 +61,7 @@ public:
     typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
 
-    void setup
+    valuebox_t<DISPLAY, SHOW, EDIT> *setup
         ( const font_t& font
         , color_t fg
         , color_t bg
@@ -62,6 +74,7 @@ public:
         m_bg = m_frame = bg;
         m_value = value;
         m_quiet = quiet;
+        return this;
     }
 
     operator T() const { return m_value; }
@@ -309,28 +322,14 @@ public:
         m_panel.render();
     }
 
-    bool handle_message(const message_t& m)
+    bool navigate(const message_t& m)
     {
         switch (m.index())
         {
-        case button_press:
-            switch (std::get<button_press>(m))
-            {
-            case 1: // top-left
-                return false;           // exit window
-            case 2: // bottom-left
-                break;
-            case 3: // top-right
-                return false;           // exit window
-            case 4: // bottom-right
-                break;
-            default: ;  // unhandled button
-            }
-            break;
         case encoder_press:
             m_state = m_state == navigating ? editing : navigating;
             (*m_focus)->focus(m_state == editing ? m_active : m_normal);
-            break;
+            return true;
         case encoder_delta:
             if (m_state == navigating)
             {
@@ -345,11 +344,10 @@ public:
             }
             else
                 (*m_focus)->edit(std::get<encoder_delta>(m));
-            break;
-        default: ;      // unhandled message
+            return true;
+        default:
+            return false;
         }
-
-        return true;   // take more messages
     }
 
 private:
