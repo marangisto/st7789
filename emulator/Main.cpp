@@ -84,6 +84,7 @@ struct gui_t: window_t<DISPLAY>
         navigation.push_back(&f1);
 
         window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
+
         sub.setup();
     }
 

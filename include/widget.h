@@ -22,7 +22,7 @@ struct rect_t
 struct ilayout
 {
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax) = 0;
-    virtual void layout(pixel_t x, pixel_t y) = 0;
+    virtual void place(pixel_t x, pixel_t y) = 0;
     virtual void render() = 0;
 };
 
@@ -98,7 +98,7 @@ public:
         return dims_t(m_rect.w, m_rect.h);
     }
 
-    virtual void layout(pixel_t x, pixel_t y)
+    virtual void place(pixel_t x, pixel_t y)
     {
         m_rect.x = x;
         m_rect.y = y;
@@ -191,11 +191,11 @@ public:
         return dims_t(m_rect.w, m_rect.h);
     }
 
-    virtual void layout(pixel_t x, pixel_t y)
+    virtual void place(pixel_t x, pixel_t y)
     {
         m_rect.x = x;
         m_rect.y = y;
-        m_child->layout(x + m_thickness, y + m_thickness);
+        m_child->place(x + m_thickness, y + m_thickness);
     }
 
     virtual void render()
@@ -246,11 +246,11 @@ public:
         return outer;
     }
 
-    virtual void layout(pixel_t x, pixel_t y)
+    virtual void place(pixel_t x, pixel_t y)
     {
         for (uint8_t i = 0; i < m_count; ++i)
         {
-            m_child[i]->layout(x, y);
+            m_child[i]->place(x, y);
             y += m_size[i];
         }
     }
@@ -288,11 +288,11 @@ public:
         return outer;
     }
 
-    virtual void layout(pixel_t x, pixel_t y)
+    virtual void place(pixel_t x, pixel_t y)
     {
         for (uint8_t i = 0; i < base::m_count; ++i)
         {
-            base::m_child[i]->layout(x, y);
+            base::m_child[i]->place(x, y);
             x += base::m_size[i];
         }
     }
@@ -311,7 +311,7 @@ public:
         m_panel.setup();
         m_panel.append(layout);
         m_panel.constrain(10, DISPLAY::width(), 10, DISPLAY::height()); // FIXME: why minbounds?
-        m_panel.layout(0, 0);
+        m_panel.place(0, 0);
         m_navigation.splice(m_navigation.end(), navigation);
         m_focus = m_navigation.begin();
         (*m_focus)->focus(m_normal);
