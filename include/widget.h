@@ -299,7 +299,7 @@ public:
 };
 
 template<typename DISPLAY>
-class screen_t
+class window_t: public iwindow
 {
 public:
     typedef color::color_t color_t;
@@ -317,19 +317,19 @@ public:
         (*m_focus)->focus(m_normal);
     }
 
-    void render()
+    virtual void render()
     {
         m_panel.render();
     }
 
-    bool navigate(const message_t& m)
+    virtual action_t handle_message(const message_t& m)
     {
         switch (m.index())
         {
         case encoder_press:
             m_state = m_state == navigating ? editing : navigating;
             (*m_focus)->focus(m_state == editing ? m_active : m_normal);
-            return true;
+            break;
         case encoder_delta:
             if (m_state == navigating)
             {
@@ -344,10 +344,11 @@ public:
             }
             else
                 (*m_focus)->edit(std::get<encoder_delta>(m));
-            return true;
+            break;
         default:
-            return false;
+            ;
         }
+        return action_t().emplace<no_action>(unit);
     }
 
 private:
@@ -359,6 +360,40 @@ private:
     state_t                 m_state;
     color_t                 m_normal;
     color_t                 m_active;
+};
+
+class window_manager
+{
+public:
+    window_manager(iwindow *w): m_top(w)
+    {
+        m_wstack.push_front(w);
+        (*m_wstack.begin())->render();
+    }
+
+    void handle_message(const message_t& m)
+    {
+        action_t a = (*m_wstack.begin())->handle_message(m);
+        switch (a.index())
+        {
+        case no_action:
+            break;
+        case push_window:
+            m_wstack.push_front(std::get<push_window>(a));
+            (*m_wstack.begin())->render();
+            break;
+        case pop_window:
+            if (*m_wstack.begin() != m_top)
+                m_wstack.pop_front();
+            (*m_wstack.begin())->render();
+            break;
+        default: ;      // FIXME: illegal action!
+        }
+    }
+
+private:
+    iwindow         *m_top;
+    list<iwindow*>  m_wstack;
 };
 
 static char tmp_buf[256];   // FIXME: think of a more principled way to share this!

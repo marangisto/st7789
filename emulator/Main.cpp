@@ -10,7 +10,7 @@ using namespace fontlib;
 typedef display_t<240, 240> display;
 
 template<typename DISPLAY>
-struct gui_t: iwindow, public screen_t<DISPLAY>
+struct gui_t: window_t<DISPLAY>
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
@@ -37,12 +37,7 @@ struct gui_t: iwindow, public screen_t<DISPLAY>
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        screen_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
-    }
-
-    virtual void render()
-    {
-        screen_t<DISPLAY>::render();
+        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -54,9 +49,7 @@ struct gui_t: iwindow, public screen_t<DISPLAY>
                 return action_t().emplace<pop_window>(0);
             default: ;  // unhandled button
             }
-        else
-            screen_t<DISPLAY>::navigate(m);
-        return action_t().emplace<no_action>(unit);
+        return window_t<DISPLAY>::handle_message(m);
     }
 
     intbox i1;
@@ -80,8 +73,6 @@ static void print_message(const message_t& m)
 
 void run()
 {
-    list<iwindow*> wstack;
-
     display::initialize("Display Emulator", 1);
     display::clear(slate_gray);
     pen_t<display> pen(dark_red);
@@ -93,8 +84,6 @@ void run()
     static gui_t<display> gui;
 
     gui.setup();
-    wstack.push_front(&gui);
-    (*wstack.begin())->render();
 
     xy_plot_t<display> plot;
 
@@ -118,31 +107,18 @@ void run()
 
     plot.line_plot(xs, ys, n, red);
     display::render();
+
+    window_manager wm(&gui);
     message_t m;
     event_t e;
+
+    display::render();
 
     while ((e = poll_event(m)) != ev_quit)
         if (e == ev_message)
         {
             print_message(m);
-            action_t a = (*wstack.begin())->handle_message(m);
-            switch (a.index())
-            {
-            case no_action:
-                break;
-            case push_window:
-                wstack.push_front(std::get<push_window>(a));
-                (*wstack.begin())->render();
-                break;
-            case pop_window:
-                wstack.pop_front();
-                if (wstack.begin() != wstack.end())
-                    (*wstack.begin())->render();
-                else
-                    ;       // FIXME: handle error or restart
-                break;
-            default: ;      // FIXME: illegal action!
-            }
+            wm.handle_message(m);
             display::render();
         }
 
