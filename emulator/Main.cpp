@@ -10,6 +10,52 @@ using namespace fontlib;
 typedef display_t<240, 240> display;
 
 template<typename DISPLAY>
+struct sub_gui_t: window_t<DISPLAY>
+{
+    typedef valuebox_t<DISPLAY, show_str> label;
+    typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
+    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<25> > floatbox;
+
+    void setup()
+    {
+        c1.setup();
+        c1.append(l1.setup(fontlib::cmunss_20, yellow, dark_green, "x"));
+        c1.append(l2.setup(fontlib::cmunss_20, yellow, dark_green, "y"));
+        c2.setup();
+        c2.append(i1.setup(fontlib::cmunss_20, yellow, steel_blue));
+        c2.append(f1.setup(fontlib::cmunss_20, yellow, steel_blue));
+        q1.setup();
+        q1.append(&c1);
+        q1.append(&c2);
+
+        list<ifocus*> navigation;
+
+        navigation.push_back(&i1);
+        navigation.push_back(&f1);
+
+        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
+    }
+
+    virtual action_t handle_message(const message_t& m)
+    {
+        if (m.index() == button_press)
+            switch (std::get<button_press>(m))
+            {
+            case 1:
+                return action_t().emplace<pop_window>(0);
+            default: ;  // unhandled button
+            }
+        return window_t<DISPLAY>::handle_message(m);
+    }
+
+    intbox i1;
+    floatbox f1;
+    label l1, l2;
+    vertical_t<DISPLAY> c1, c2;
+    horizontal_t<DISPLAY> q1;
+};
+
+template<typename DISPLAY>
 struct gui_t: window_t<DISPLAY>
 {
     typedef valuebox_t<DISPLAY, show_str> label;
@@ -38,6 +84,7 @@ struct gui_t: window_t<DISPLAY>
         navigation.push_back(&f1);
 
         window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
+        sub.setup();
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -46,7 +93,7 @@ struct gui_t: window_t<DISPLAY>
             switch (std::get<button_press>(m))
             {
             case 1:
-                return action_t().emplace<pop_window>(0);
+                return action_t().emplace<push_window>(&sub);
             default: ;  // unhandled button
             }
         return window_t<DISPLAY>::handle_message(m);
@@ -58,6 +105,7 @@ struct gui_t: window_t<DISPLAY>
     label r1, r2, r3;
     vertical_t<DISPLAY> c1, c2;
     horizontal_t<DISPLAY> q1;
+    sub_gui_t<DISPLAY> sub;
 };
 
 static void print_message(const message_t& m)
