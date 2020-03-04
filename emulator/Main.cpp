@@ -33,7 +33,7 @@ struct sub_gui_t: window_t<DISPLAY>
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
+        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red, rect_t(50, 50, 140, 140));
     }
 
     virtual action_t handle_message(const message_t& m)

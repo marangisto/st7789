@@ -15,6 +15,7 @@ typedef std::pair<pixel_t, pixel_t> dims_t;
 struct rect_t
 {
     rect_t(): x(0), y(0), w(0), h(0) {}
+    rect_t(pixel_t _x, pixel_t _y, pixel_t _w, pixel_t _h): x(_x), y(_y), w(_w), h(_h) {}
 
     pixel_t x, y, w, h;
 };
@@ -304,14 +305,16 @@ class window_t: public iwindow
 public:
     typedef color::color_t color_t;
 
-    void setup(ilayout *layout, list<ifocus*>& navigation, color_t normal, color_t active)
+    static rect_t full_size() { return rect_t(0, 0, DISPLAY::width(), DISPLAY::height()); }
+
+    void setup(ilayout *layout, list<ifocus*>& navigation, color_t normal, color_t active, const rect_t& r = full_size())
     {
         m_normal = normal;
         m_active = active;
         m_panel.setup();
         m_panel.append(layout);
-        m_panel.constrain(10, DISPLAY::width(), 10, DISPLAY::height()); // FIXME: why minbounds?
-        m_panel.place(0, 0);
+        m_panel.constrain(10, r.w, 10, r.h); // FIXME: why minbounds?
+        m_panel.place(r.x, r.y);
         m_navigation.splice(m_navigation.end(), navigation);
         m_focus = m_navigation.begin();
         (*m_focus)->focus(m_normal);
