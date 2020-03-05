@@ -33,7 +33,7 @@ struct rect_t
     pixel_t x, y, w, h;
 };
 
-struct ilayout
+struct iwidget
 {
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax) = 0;
     virtual void place(pixel_t x, pixel_t y) = 0;
@@ -68,7 +68,7 @@ struct read_only
 };
 
 template<typename DISPLAY, typename SHOW, typename EDIT = read_only<typename SHOW::T> >
-class valuebox_t: public ilayout, public ifocus
+class valuebox_t: public iwidget, public ifocus
 {
 public:
     typedef typename SHOW::T T;
@@ -112,7 +112,7 @@ public:
 
     const volatile T* ptr() const { return &m_value; }
 
-    // ilayout
+    // iwidget
 
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
     {
@@ -191,19 +191,19 @@ private:
 };
 
 template<typename DISPLAY>
-class border_t: public ilayout
+class border_t: public iwidget
 {
 public:
     typedef color::color_t color_t;
 
-    void setup(ilayout *child, color_t color = color::black, pixel_t thickness = 1)
+    void setup(iwidget *child, color_t color = color::black, pixel_t thickness = 1)
     {
         m_child = child;
         m_color = color;
         m_thickness = thickness;
     }
 
-    // ilayout
+    // iwidget
 
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
     {
@@ -231,14 +231,14 @@ public:
     }
 
 private:
-    ilayout     *m_child;
+    iwidget     *m_child;
     rect_t      m_rect;
     pixel_t     m_thickness;
     color_t     m_color;
 };
 
 template<typename DISPLAY>
-class vertical_t: public ilayout
+class vertical_t: public iwidget
 {
 public:
     static constexpr uint8_t max_children = 16;
@@ -248,13 +248,13 @@ public:
         m_count = 0;
     }
 
-    void append(ilayout *child)
+    void append(iwidget *child)
     {
         if (m_count < max_children)
             m_child[m_count++] = child;
     }
 
-    // ilayout
+    // iwidget
 
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
     {
@@ -285,7 +285,7 @@ public:
     }
 
 protected:
-    ilayout     *m_child[max_children];
+    iwidget     *m_child[max_children];
     pixel_t     m_size[max_children];
     uint8_t     m_count;
 };
@@ -294,7 +294,7 @@ template<typename DISPLAY>
 class horizontal_t: public vertical_t<DISPLAY>
 {
 public:
-    // ilayout overrides
+    // iwidget overrides
 
     typedef vertical_t<DISPLAY> base;
 
@@ -329,12 +329,12 @@ public:
 
     static rect_t full_size() { return rect_t(0, 0, DISPLAY::width(), DISPLAY::height()); }
 
-    void setup(ilayout *layout, list<ifocus*>& navigation, const theme_t& theme, const rect_t& r = full_size())
+    void setup(iwidget *widget, list<ifocus*>& navigation, const theme_t& theme, const rect_t& r = full_size())
     {
         m_normal = theme.normal_cursor;
         m_active = theme.active_cursor;
         m_panel.setup();
-        m_panel.append(layout);
+        m_panel.append(widget);
         m_panel.constrain(10, r.w, 10, r.h); // FIXME: why minbounds?
         m_panel.place(r.x, r.y);
         m_navigation.splice(m_navigation.end(), navigation);
