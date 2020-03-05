@@ -140,7 +140,9 @@ void run()
 
     xy_plot_t<display> plot;
 
-    plot.setup(10, 100, 100, 75, gray, black);
+    plot.setup((theme.normal_bg = 0x2f2f2f, theme.normal_fg = dim_gray, theme));
+    plot.constrain(0, display::width()-20, 0, 100);
+    plot.place(10, 100);
 
     static const float pi = 3.141592654;
     static const uint16_t n = 100;
