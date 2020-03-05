@@ -27,13 +27,14 @@ struct sub_gui_t: window_t<DISPLAY>
         q1.setup();
         q1.append(&c1);
         q1.append(&c2);
+        b.setup(&q1, t.border_color, 3);
 
         list<ifocus*> navigation;
 
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        window_t<DISPLAY>::setup(&q1, navigation, t, rect_t(50, 50, 140, 140));
+        window_t<DISPLAY>::setup(&b, navigation, t, rect_t(50, 50, 140, 140));
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -53,6 +54,7 @@ struct sub_gui_t: window_t<DISPLAY>
     label l1, l2;
     vertical_t<DISPLAY> c1, c2;
     horizontal_t<DISPLAY> q1;
+    border_t<DISPLAY> b;
 };
 
 template<typename DISPLAY>
@@ -132,7 +134,7 @@ void run()
 
     static gui_t<display> gui;
 
-    theme_t theme = { white, slate_gray, yellow, orange_red, fontlib::cmunss_20 };
+    theme_t theme = { white, slate_gray, dim_gray, yellow, orange_red, fontlib::cmunss_20 };
 
     gui.setup(theme);
 

@@ -15,6 +15,7 @@ struct theme_t
 
     color_t normal_fg;
     color_t normal_bg;
+    color_t border_color;
     color_t normal_cursor;
     color_t active_cursor;
     const font_t font;
