@@ -8,6 +8,18 @@
 #include <functional>
 #include <variant>
 
+struct theme_t
+{
+    using color_t = color::color_t;
+    using font_t = fontlib::font_t;
+
+    color_t normal_fg;
+    color_t normal_bg;
+    color_t normal_cursor;
+    color_t active_cursor;
+    const font_t font;
+};
+
 typedef uint16_t pixel_t;
 
 typedef std::pair<pixel_t, pixel_t> dims_t;
@@ -61,6 +73,15 @@ public:
     typedef typename SHOW::T T;
     typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
+
+    valuebox_t<DISPLAY, SHOW, EDIT> *setup
+        ( const theme_t& t
+        , const T& value = T()
+        , const bool *quiet = 0
+        )
+    {
+        return setup(t.font, t.normal_fg, t.normal_bg, value, quiet);
+    }
 
     valuebox_t<DISPLAY, SHOW, EDIT> *setup
         ( const font_t& font
@@ -307,10 +328,10 @@ public:
 
     static rect_t full_size() { return rect_t(0, 0, DISPLAY::width(), DISPLAY::height()); }
 
-    void setup(ilayout *layout, list<ifocus*>& navigation, color_t normal, color_t active, const rect_t& r = full_size())
+    void setup(ilayout *layout, list<ifocus*>& navigation, const theme_t& theme, const rect_t& r = full_size())
     {
-        m_normal = normal;
-        m_active = active;
+        m_normal = theme.normal_cursor;
+        m_active = theme.active_cursor;
         m_panel.setup();
         m_panel.append(layout);
         m_panel.constrain(10, r.w, 10, r.h); // FIXME: why minbounds?

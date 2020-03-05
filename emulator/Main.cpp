@@ -16,14 +16,14 @@ struct sub_gui_t: window_t<DISPLAY>
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<25> > floatbox;
 
-    void setup()
+    void setup(const theme_t& t)
     {
         c1.setup();
-        c1.append(l1.setup(fontlib::cmunss_20, yellow, dark_green, "x"));
-        c1.append(l2.setup(fontlib::cmunss_20, yellow, dark_green, "y"));
+        c1.append(l1.setup(t, "x"));
+        c1.append(l2.setup(t, "y"));
         c2.setup();
-        c2.append(i1.setup(fontlib::cmunss_20, yellow, steel_blue));
-        c2.append(f1.setup(fontlib::cmunss_20, yellow, steel_blue));
+        c2.append(i1.setup(t));
+        c2.append(f1.setup(t));
         q1.setup();
         q1.append(&c1);
         q1.append(&c2);
@@ -33,7 +33,7 @@ struct sub_gui_t: window_t<DISPLAY>
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red, rect_t(50, 50, 140, 140));
+        window_t<DISPLAY>::setup(&q1, navigation, t, rect_t(50, 50, 140, 140));
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -62,18 +62,18 @@ struct gui_t: window_t<DISPLAY>
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<25> > floatbox;
 
-    void setup()
+    void setup(const theme_t& t)
     {
         c1.setup();
-        c1.append(i1.setup(fontlib::cmunss_20, yellow, steel_blue));
-        c1.append(l1.setup(fontlib::cmunss_20, yellow, dark_green, "foo"));
-        c1.append(l2.setup(fontlib::cmunss_20, yellow, dark_green, "bar"));
-        c1.append(l3.setup(fontlib::cmunss_20, yellow, dark_green, "baz!"));
+        c1.append(i1.setup(t));
+        c1.append(l1.setup(t, "foo"));
+        c1.append(l2.setup(t, "bar"));
+        c1.append(l3.setup(t, "baz!"));
         c2.setup();
-        c2.append(f1.setup(fontlib::cmunss_20, yellow, steel_blue));
-        c2.append(r1.setup(fontlib::cmunss_20, yellow, dark_green, "ofo"));
-        c2.append(r2.setup(fontlib::cmunss_20, yellow, dark_green, "abr"));
-        c2.append(r3.setup(fontlib::cmunss_20, yellow, dark_green, "abz!"));
+        c2.append(f1.setup(t));
+        c2.append(r1.setup(t, "ofo"));
+        c2.append(r2.setup(t, "abr"));
+        c2.append(r3.setup(t, "abz!"));
         q1.setup();
         q1.append(&c1);
         q1.append(&c2);
@@ -83,9 +83,9 @@ struct gui_t: window_t<DISPLAY>
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        window_t<DISPLAY>::setup(&q1, navigation, yellow, orange_red);
+        window_t<DISPLAY>::setup(&q1, navigation, t);
 
-        sub.setup();
+        sub.setup(t);
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -116,7 +116,7 @@ static void print_message(const message_t& m)
         case button_press: printf("button_press: %d\n", std::get<button_press>(m)); break;
         case encoder_delta: printf("encoder_delta: %d\n", std::get<encoder_delta>(m)); break;
         case encoder_press: printf("encoder_press: .\n"); break;
-        default: printf("illegal message\n");    
+        default: printf("illegal message\n");
     }
 }
 
@@ -132,7 +132,9 @@ void run()
 
     static gui_t<display> gui;
 
-    gui.setup();
+    theme_t theme = { white, slate_gray, yellow, orange_red, fontlib::cmunss_20 };
+
+    gui.setup(theme);
 
     xy_plot_t<display> plot;
 
