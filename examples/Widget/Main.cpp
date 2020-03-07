@@ -56,11 +56,9 @@ int main()
     hal::nvic<interrupt::TIM6_DAC>::enable();
     display::setup<display_spi_prescale>(dark_red);
 
-    static gui_t<display> gui;
+    theme_t theme = { white, slate_gray, blue, yellow, orange_red, fontlib::cmunss_20 };
 
-    theme_t theme = { white, slate_gray, dim_gray, yellow, orange_red, fontlib::cmunss_20 };
-
-    gui.setup(theme);
+    static gui_t<display> gui(theme);
 
     window_manager wm(&gui);
     message_t m;
