@@ -75,29 +75,17 @@ public:
     typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
 
-    valuebox_t<DISPLAY, SHOW, EDIT> *setup
+    valuebox_t
         ( const theme_t& t
         , const T& value = T()
         , const bool *quiet = 0
         )
     {
-        return setup(t.font, t.normal_fg, t.normal_bg, value, quiet);
-    }
-
-    valuebox_t<DISPLAY, SHOW, EDIT> *setup
-        ( const font_t& font
-        , color_t fg
-        , color_t bg
-        , const T& value = T()
-        , const bool *quiet = 0
-        )
-    {
-        m_font = &font;
-        m_fg = fg;
-        m_bg = m_frame = bg;
+        m_font = &t.font;
+        m_fg = t.normal_fg;
+        m_bg = m_frame = t.normal_bg;
         m_value = value;
         m_quiet = quiet;
-        return this;
     }
 
     operator T() const { return m_value; }
@@ -196,7 +184,7 @@ class border_t: public iwidget
 public:
     typedef color::color_t color_t;
 
-    void setup(iwidget *child, color_t color = color::black, pixel_t thickness = 1)
+    border_t(iwidget *child, color_t color = color::black, pixel_t thickness = 1)
     {
         m_child = child;
         m_color = color;
@@ -241,17 +229,32 @@ template<typename DISPLAY>
 class vertical_t: public iwidget
 {
 public:
-    static constexpr uint8_t max_children = 16;
+    static constexpr uint8_t max_children = 10;
 
-    void setup()
+    vertical_t
+        ( iwidget *c0 = 0
+        , iwidget *c1 = 0
+        , iwidget *c2 = 0
+        , iwidget *c3 = 0
+        , iwidget *c4 = 0
+        , iwidget *c5 = 0
+        , iwidget *c6 = 0
+        , iwidget *c7 = 0
+        , iwidget *c8 = 0
+        , iwidget *c9 = 0
+        )
     {
         m_count = 0;
-    }
-
-    void append(iwidget *child)
-    {
-        if (m_count < max_children)
-            m_child[m_count++] = child;
+        if (c0) m_child[m_count++] = c0;
+        if (c1) m_child[m_count++] = c1;
+        if (c2) m_child[m_count++] = c2;
+        if (c3) m_child[m_count++] = c3;
+        if (c4) m_child[m_count++] = c4;
+        if (c5) m_child[m_count++] = c5;
+        if (c6) m_child[m_count++] = c6;
+        if (c7) m_child[m_count++] = c7;
+        if (c8) m_child[m_count++] = c8;
+        if (c9) m_child[m_count++] = c9;
     }
 
     // iwidget
@@ -294,6 +297,20 @@ template<typename DISPLAY>
 class horizontal_t: public vertical_t<DISPLAY>
 {
 public:
+    horizontal_t
+        ( iwidget *c0 = 0
+        , iwidget *c1 = 0
+        , iwidget *c2 = 0
+        , iwidget *c3 = 0
+        , iwidget *c4 = 0
+        , iwidget *c5 = 0
+        , iwidget *c6 = 0
+        , iwidget *c7 = 0
+        , iwidget *c8 = 0
+        , iwidget *c9 = 0
+        ) : vertical_t<DISPLAY>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9)
+    {}
+
     // iwidget overrides
 
     typedef vertical_t<DISPLAY> base;
@@ -329,14 +346,20 @@ public:
 
     static rect_t full_size() { return rect_t(0, 0, DISPLAY::width(), DISPLAY::height()); }
 
+    window_t() {}
+
+    window_t(iwidget *widget, list<ifocus*>& navigation, const theme_t& theme, const rect_t& r = full_size())
+    {
+        setup(widget, navigation, theme, r);
+    }
+
     void setup(iwidget *widget, list<ifocus*>& navigation, const theme_t& theme, const rect_t& r = full_size())
     {
         m_normal = theme.normal_cursor;
         m_active = theme.active_cursor;
-        m_panel.setup();
-        m_panel.append(widget);
-        m_panel.constrain(10, r.w, 10, r.h); // FIXME: why minbounds?
-        m_panel.place(r.x, r.y);
+        m_widget = widget;
+        m_widget->constrain(10, r.w, 10, r.h); // FIXME: why minbounds?
+        m_widget->place(r.x, r.y);
         m_navigation.splice(m_navigation.end(), navigation);
         m_focus = m_navigation.begin();
         (*m_focus)->focus(m_normal);
@@ -344,7 +367,7 @@ public:
 
     virtual void render()
     {
-        m_panel.render();
+        m_widget->render();
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -379,7 +402,7 @@ public:
 private:
     enum state_t { navigating, editing };
 
-    horizontal_t<DISPLAY>   m_panel;
+    iwidget                 *m_widget;
     list<ifocus*>           m_navigation;
     list_iterator<ifocus*>  m_focus;
     state_t                 m_state;
