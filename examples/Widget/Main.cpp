@@ -6,7 +6,10 @@
 
 typedef hal::timer::timer_t<6> aux;
 typedef hal::timer::encoder_t<3, PA6, PA7> enc;
-typedef hal::gpio::button_t<PB6> enc_btn;
+typedef button_t<PB6> btn0;
+typedef button_t<PA11> btn1;
+typedef button_t<PC9> btn2;
+typedef button_t<PC7> btn3;
 typedef fifo_t<message_t, 0, 8> mq;
 
 template<> void handler<interrupt::TIM6_DAC>()
@@ -31,16 +34,23 @@ template<> void handler<interrupt::TIM6_DAC>()
         enc_last_count = c;
     }
 
-    enc_btn::update();
-
-    if (enc_btn::read())
+    if (btn0::update_read())
         mq::put(message_t().emplace<encoder_press>(unit));
+    if (btn1::update_read())
+        mq::put(message_t().emplace<button_press>(1));
+    if (btn2::update_read())
+        mq::put(message_t().emplace<button_press>(2));
+    if (btn3::update_read())
+        mq::put(message_t().emplace<button_press>(3));
 }
 
 int main()
 {
     enc::setup<pull_up>(1 + (64 << 1));
-    enc_btn::setup<pull_up>();
+    btn0::setup<pull_up>();
+    btn1::setup<pull_up>();
+    btn2::setup<pull_up>();
+    btn3::setup<pull_up>();
     aux::setup(48-1, 1000-1); // 1kHz
     aux::update_interrupt_enable();
     hal::nvic<interrupt::TIM6_DAC>::enable();
