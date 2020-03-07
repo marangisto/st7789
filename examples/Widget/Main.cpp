@@ -1,52 +1,66 @@
+#include <timer.h>
+#include <fifo.h>
+#include <button.h>
 #include "../display.h"
-#include <widget.h>
-#include <plot.h>
+#include "gui.h"
 
-using namespace text;
-using namespace color;
-using namespace graphics;
-using namespace fontlib;
+typedef hal::timer::timer_t<6> aux;
+typedef hal::timer::encoder_t<3, PA6, PA7> enc;
+typedef hal::gpio::button_t<PB6> enc_btn;
+typedef fifo_t<message_t, 0, 8> mq;
 
-static char tmp_buf[256];
-
-struct gui_t
+template<> void handler<interrupt::TIM6_DAC>()
 {
-    static const uint16_t w = display::width() / 2;
-    static const uint16_t h = 30;
+    aux::clear_uif();
 
-    widget_t<display, int> fbox;
-    xy_plot_t<display> plot;
+    static int16_t enc_last_count = 0;
+    int16_t c = static_cast<int16_t>(enc::count()) >> 1;
 
-    gui_t()
-        : fbox
-            ( fontlib::cmuntt_24, yellow, dark_green, 0, 0, w, h
-            , [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
-            , [](auto& x, int i) { x += i; }
-            , true
-            )
-        {
-            plot.setup(0, h, display::width(), display::height() - h, web_gray, 0x101010);
-            plot.viewport(-1., -1., 1., 1.);
-        }
-
-    void render()
+    if (c != enc_last_count)
     {
-        fbox.render();
-        plot.clear();
+        int16_t n = c - enc_last_count;
+
+        // hack around weird glitch
+
+        if (n == 64)
+            n = -1;
+        else if (n == -64)
+            n = 1;
+
+        mq::put(message_t().emplace<encoder_delta>(n));
+        enc_last_count = c;
     }
-};
+
+    enc_btn::update();
+
+    if (enc_btn::read())
+        mq::put(message_t().emplace<encoder_press>(unit));
+}
 
 int main()
 {
+    enc::setup<pull_up>(1 + (64 << 1));
+    enc_btn::setup<pull_up>();
+    aux::setup(48-1, 1000-1); // 1kHz
+    aux::update_interrupt_enable();
+    hal::nvic<interrupt::TIM6_DAC>::enable();
     display::setup<display_spi_prescale>(dark_red);
-    gui_t gui;
 
-    gui.render();
+    static gui_t<display> gui;
+
+    theme_t theme = { white, slate_gray, dim_gray, yellow, orange_red, fontlib::cmunss_20 };
+
+    gui.setup(theme);
+
+    window_manager wm(&gui);
+    message_t m;
+    static uint8_t i = 0;
 
     for (;;)
     {
-        static uint8_t i = 0;
-        gui.fbox = ++i;
+        if (mq::get(m))
+            wm.handle_message(m);
+        gui.f2 = ++i;
     }
 }
 
