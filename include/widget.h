@@ -362,7 +362,8 @@ public:
         m_widget->place(r.x, r.y);
         m_navigation.splice(m_navigation.end(), navigation);
         m_focus = m_navigation.begin();
-        (*m_focus)->focus(m_normal);
+        if (!m_navigation.empty())
+            (*m_focus)->focus(m_normal);
     }
 
     virtual void render()
@@ -376,9 +377,12 @@ public:
         {
         case encoder_press:
             m_state = m_state == navigating ? editing : navigating;
-            (*m_focus)->focus(m_state == editing ? m_active : m_normal);
+            if (!m_navigation.empty())
+                (*m_focus)->focus(m_state == editing ? m_active : m_normal);
             break;
         case encoder_delta:
+            if (m_navigation.empty())
+                break;
             if (m_state == navigating)
             {
                 int dir = std::get<encoder_delta>(m);
