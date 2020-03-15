@@ -21,11 +21,11 @@ struct theme_t
     const font_t font;
 };
 
-typedef uint16_t pixel_t;
+typedef uint8_t pixel_t;    // FIXME: traits to determine smallest word for DISPLAY dims!
 
 typedef std::pair<pixel_t, pixel_t> dims_t;
 
-struct rect_t
+struct __attribute__((__packed__)) rect_t
 {
     rect_t(): x(0), y(0), w(0), h(0) {}
     rect_t(pixel_t _x, pixel_t _y, pixel_t _w, pixel_t _h): x(_x), y(_y), w(_w), h(_h) {}
@@ -100,7 +100,7 @@ public:
     {
         m_rect.w = wmax;
         m_rect.h = std::min(hmax, m_theme.font.line_spacing());
-        return dims_t(m_rect.w, m_rect.h);
+        return dims_t(static_cast<pixel_t>(m_rect.w), static_cast<pixel_t>(m_rect.h));
     }
 
     virtual void place(pixel_t x, pixel_t y)
@@ -191,7 +191,7 @@ public:
         dims_t inner = m_child->constrain(wmin - dp, wmax - dp, hmin - dp, hmax - dp);
         m_rect.w = inner.first + dp;
         m_rect.h = inner.second + dp;
-        return dims_t(m_rect.w, m_rect.h);
+        return dims_t(static_cast<pixel_t>(m_rect.w), static_cast<pixel_t>(m_rect.h));
     }
 
     virtual void place(pixel_t x, pixel_t y)
