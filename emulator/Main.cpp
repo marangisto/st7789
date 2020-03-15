@@ -26,7 +26,7 @@ void run()
 
     bool quit = false;
 
-    theme_t theme = { white, slate_gray, dim_gray, yellow, orange_red, fontlib::cmunss_20 };
+    theme_t theme = { white, slate_gray, dim_gray, yellow, orange_red, fontlib::cmunss_20, false };
 
     static gui_t<display> gui(theme);
 

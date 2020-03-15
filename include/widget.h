@@ -19,6 +19,7 @@ struct theme_t
     color_t normal_cursor;
     color_t active_cursor;
     const font_t font;
+    bool quiet;             // don't render on propery update
 };
 
 typedef uint8_t pixel_t;    // FIXME: traits to determine smallest word for DISPLAY dims!
@@ -78,8 +79,7 @@ public:
     valuebox_t
         ( const theme_t& theme
         , const T& value = T()
-        , const bool *quiet = 0
-        ): m_value(value), m_theme(theme), m_quiet(quiet), m_frame(m_theme.normal_bg)
+        ): m_value(value), m_theme(theme), m_frame(m_theme.normal_bg)
     {}
 
     operator T() const { return m_value; }
@@ -87,7 +87,7 @@ public:
     T operator=(const T& x)
     {
         m_value = x;
-        if (m_quiet && !*m_quiet)
+        if (!m_theme.quiet)
             render();
         return m_value;
     }
@@ -165,7 +165,6 @@ public:
 private:
     volatile T      m_value;
     const theme_t&  m_theme;
-    const bool      *m_quiet;
     color_t         m_frame;
     rect_t          m_rect;
 };

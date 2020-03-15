@@ -58,8 +58,8 @@ struct gui_t: window_t<DISPLAY>
 
     gui_t(const theme_t& t)
         : l1(t, "foo"), l2(t, "bar"), l3(t, "baz!"), c1(&l1, &l2, &l3)
-        , i1(t), f1(t), f2(t, 0, &quiet), c2(&i1, &f1, &f2)
-        , q1(&c1, &c2), sub(t), quiet(false)
+        , i1(t), f1(t), f2(t, 0), c2(&i1, &f1, &f2)
+        , q1(&c1, &c2), sub(t)
     {
         list<ifocus*> navigation;
 
@@ -89,6 +89,5 @@ struct gui_t: window_t<DISPLAY>
     vertical_t<DISPLAY> c2;
     horizontal_t<DISPLAY> q1;
     sub_gui_t<DISPLAY> sub;
-    bool quiet;
 };
 
