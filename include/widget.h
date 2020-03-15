@@ -76,17 +76,11 @@ public:
     typedef fontlib::font_t font_t;
 
     valuebox_t
-        ( const theme_t& t
+        ( const theme_t& theme
         , const T& value = T()
         , const bool *quiet = 0
-        )
-    {
-        m_font = &t.font;
-        m_fg = t.normal_fg;
-        m_bg = m_frame = t.normal_bg;
-        m_value = value;
-        m_quiet = quiet;
-    }
+        ): m_value(value), m_theme(theme), m_quiet(quiet), m_frame(m_theme.normal_bg)
+    {}
 
     operator T() const { return m_value; }
 
@@ -105,7 +99,7 @@ public:
     virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
     {
         m_rect.w = wmax;
-        m_rect.h = std::min(hmax, m_font->line_spacing());
+        m_rect.h = std::min(hmax, m_theme.font.line_spacing());
         return dims_t(m_rect.w, m_rect.h);
     }
 
@@ -119,8 +113,8 @@ public:
     {
         const char *s = SHOW::show(m_value);
 
-        text::text_renderer_t<DISPLAY> tr(*m_font, m_fg, m_bg, true);
-        graphics::pen_t<DISPLAY> pen(m_bg);
+        text::text_renderer_t<DISPLAY> tr(m_theme.font, m_theme.normal_fg, m_theme.normal_bg, true);
+        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
         uint16_t tw, th;
 
         tr.bounding_box(s, tw, th);
@@ -141,10 +135,10 @@ public:
         if (bpad)
             pen.fill_rectangle(m_rect.x + lpad, m_rect.y + th + tpad, tw, bpad);
 
-        tr.set_pos(m_rect.x + lpad, m_rect.y + tpad - m_font->min_y);
+        tr.set_pos(m_rect.x + lpad, m_rect.y + tpad - m_theme.font.min_y);
         tr.write(s);
 
-        if (m_frame != m_bg)
+        if (m_frame != m_theme.normal_bg)
             graphics::pen_t<DISPLAY>(m_frame).rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
     }
 
@@ -158,7 +152,7 @@ public:
 
     virtual void defocus()
     {
-        m_frame = m_bg;
+        m_frame = m_theme.normal_bg;
         render();
     }
 
@@ -170,12 +164,10 @@ public:
 
 private:
     volatile T      m_value;
-    rect_t          m_rect;
-    const font_t    *m_font;
-    color_t         m_fg;
-    color_t         m_bg;
-    color_t         m_frame;
+    const theme_t&  m_theme;
     const bool      *m_quiet;
+    color_t         m_frame;
+    rect_t          m_rect;
 };
 
 template<typename DISPLAY>
