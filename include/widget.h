@@ -50,11 +50,11 @@ struct ifocus
     virtual void edit(int i) = 0;
 };
 
-enum action_tag_t { no_action, push_window, pop_window };
+enum action_tag_t { no_action, push_window, pop_window, pop_window_message };
 
 struct iwindow;
 
-typedef std::variant<unit_t, iwindow*, unsigned> action_t;
+typedef std::variant<unit_t, iwindow*, unsigned, message_t> action_t;
 
 struct iwindow
 {
@@ -430,6 +430,12 @@ public:
                 m_wstack.pop_front();
             (*m_wstack.begin())->render();
             break;
+        case pop_window_message:
+            if (*m_wstack.begin() != m_top)
+                m_wstack.pop_front();
+            (*m_wstack.begin())->render();
+            handle_message(std::get<pop_window_message>(a));    // how deep does this go?
+            break;
         default: ;      // FIXME: illegal action!
         }
     }
@@ -458,6 +464,17 @@ struct edit_int
     static void edit(volatile int& x, int i) { x += i; }
 };
 
+struct show_unsigned
+{
+    typedef int T;
+    static const char *show(T x) { sprintf(tmp_buf, "%u", x); return tmp_buf; }
+};
+
+struct edit_unsigned
+{
+    static void edit(volatile int& x, int i) { if (x + i >= 0) x += i; }
+};
+
 template<int DECIMALS>
 struct show_float
 {
@@ -476,5 +493,16 @@ struct show_percent
 {
     typedef float T;
     static const char *show(T x) { sprintf(tmp_buf, "%.*f%%", DECIMALS, x * 100.0f); return tmp_buf; }
+};
+
+struct show_bool
+{
+    typedef bool T;
+    static const char *show(T x) { sprintf(tmp_buf, "%s", x ? "true" : "false"); return tmp_buf; }
+};
+
+struct edit_bool
+{
+    static void edit(volatile bool& x, int i) { if (i) x = !x; }
 };
 
