@@ -22,9 +22,7 @@ struct theme_t
     bool quiet;             // don't render on propery update
 };
 
-typedef uint8_t pixel_t;    // FIXME: traits to determine smallest word for DISPLAY dims!
-
-typedef std::pair<pixel_t, pixel_t> dims_t;
+typedef uint8_t pixel_t;    // FIXME: traits to determine smallest word for DISPLAY dimensions!
 
 struct __attribute__((__packed__)) rect_t
 {
@@ -36,7 +34,8 @@ struct __attribute__((__packed__)) rect_t
 
 struct iwidget
 {
-    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax) = 0;
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v) = 0;
+    virtual void size(pixel_t w, pixel_t h) = 0;
     virtual void place(pixel_t x, pixel_t y) = 0;
     virtual void render() = 0;
 };
@@ -96,11 +95,17 @@ public:
 
     // iwidget
 
-    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
     {
-        m_rect.w = wmax;
-        m_rect.h = std::min(hmax, m_theme.font.line_spacing());
-        return dims_t(static_cast<pixel_t>(m_rect.w), static_cast<pixel_t>(m_rect.h));
+        w = h = m_theme.font.line_spacing();
+        fill_h = true;
+        fill_v = false;
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        m_rect.w = w;
+        m_rect.h = h;
     }
 
     virtual void place(pixel_t x, pixel_t y)
@@ -184,13 +189,22 @@ public:
 
     // iwidget
 
-    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
     {
         pixel_t dp = m_thickness << 1;  // both sides of border
-        dims_t inner = m_child->constrain(wmin - dp, wmax - dp, hmin - dp, hmax - dp);
-        m_rect.w = inner.first + dp;
-        m_rect.h = inner.second + dp;
-        return dims_t(static_cast<pixel_t>(m_rect.w), static_cast<pixel_t>(m_rect.h));
+
+        m_child->size(w, fill_h, h, fill_v);
+        w += dp;
+        h += dp;
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        pixel_t dp = m_thickness << 1;  // both sides of border
+
+        m_rect.w = w;
+        m_rect.h = h;
+        m_child->size(w - dp, h - dp);
     }
 
     virtual void place(pixel_t x, pixel_t y)
@@ -250,17 +264,30 @@ public:
 
     // iwidget
 
-    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
     {
-        dims_t outer(0, 0);
+        w = h = 0;
+        fill_h = fill_v = false;
 
         for (uint8_t i = 0; i < m_count; ++i)
         {
-            dims_t inner = m_child[i]->constrain(wmin, wmax, hmin / m_count, hmax / m_count);
-            outer.first = std::max(inner.first, outer.first);
-            outer.second += m_size[i] = inner.second;
+            pixel_t cw, ch;
+            bool fh, fv;
+
+            m_child[i]->size(cw, fh, ch, fv);
+            w = std::max(w, cw);
+            h += ch;
+            fill_h = fill_h || fh;
+            fill_v = fill_v || fv;
+            m_size[i] = fv ? 0 : ch;
         }
-        return outer;
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        make_fills(h);
+        for (unsigned i = 0; i < m_count; ++i)
+            m_child[i]->size(w, m_size[i]);
     }
 
     virtual void place(pixel_t x, pixel_t y)
@@ -279,6 +306,31 @@ public:
     }
 
 protected:
+    void make_fills(pixel_t s)
+    {
+        unsigned fills = 0;
+        pixel_t used = 0;
+
+        for (unsigned i = 0; i < m_count; ++i)
+            if (m_size[i] == 0)
+                ++fills;
+            else
+                used += m_size[i];
+
+        if (fills > 0)  // FIXME: account for requested minimum sizes!
+        {
+            pixel_t each = (s - used) / fills;
+            pixel_t stub = (s - used) - fills * each;
+
+            for (unsigned i = 0; i < m_count; ++i)
+                if (m_size[i] == 0)
+                {
+                    m_size[i] = each + stub;
+                    stub = 0;
+                }
+        }
+    }
+
     iwidget     *m_child[max_children];
     pixel_t     m_size[max_children];
     uint8_t     m_count;
@@ -306,17 +358,30 @@ public:
 
     typedef vertical_t<DISPLAY> base;
 
-    virtual dims_t constrain(pixel_t wmin, pixel_t wmax, pixel_t hmin, pixel_t hmax)
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
     {
-        dims_t outer(0, 0);
+        w = h = 0;
+        fill_h = fill_v = false;
 
         for (uint8_t i = 0; i < base::m_count; ++i)
         {
-            dims_t inner = base::m_child[i]->constrain(wmin / base::m_count, wmax / base::m_count, hmin, hmax);
-            outer.second = std::max(inner.second, outer.second);
-            outer.first += base::m_size[i] = inner.first;
+            pixel_t cw, ch;
+            bool fh, fv;
+
+            base::m_child[i]->size(cw, fh, ch, fv);
+            h = std::max(h, ch);
+            w += cw;
+            fill_h = fill_h || fh;
+            fill_v = fill_v || fv;
+            base::m_size[i] = fh ? 0 : cw;
         }
-        return outer;
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        base::make_fills(w);
+        for (unsigned i = 0; i < base::m_count; ++i)
+            base::m_child[i]->size(base::m_size[i], h);
     }
 
     virtual void place(pixel_t x, pixel_t y)
@@ -349,7 +414,13 @@ public:
         m_normal = theme.normal_cursor;
         m_active = theme.active_cursor;
         m_widget = widget;
-        m_widget->constrain(10, r.w, 10, r.h); // FIXME: why minbounds?
+
+        pixel_t w, h;
+        bool fill_h, fill_v;
+
+        m_widget->size(w, fill_h, h, fill_v);
+        m_widget->size(std::max(w, r.w), std::max(h, r.h));
+
         m_widget->place(r.x, r.y);
         m_navigation.splice(m_navigation.end(), navigation);
         m_focus = m_navigation.begin();
