@@ -424,7 +424,7 @@ public:
 
     virtual void render()
     {
-        graphics::pen_t<DISPLAY> pen(m_theme.normal_fg);
+        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
 
         pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
         DISPLAY::set_scroll_area(m_rect.y, m_rect.h);
@@ -438,9 +438,9 @@ public:
     {
         m_scroll += n;
 
-        uint32_t s = m_scroll % m_rect.h;
+        uint32_t s = m_rect.y + m_scroll % m_rect.h;
 
-        DISPLAY::scroll(m_rect.y + s);
+        DISPLAY::scroll(s);
         return s;
     }
 

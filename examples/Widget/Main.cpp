@@ -64,18 +64,21 @@ int main()
     message_t m;
     static uint32_t i = 0;
     rect_t r = gui.region.rect();
-    graphics::pen_t<display> pen(color::red);
-    uint32_t s = 0;
+    graphics::pen_t<display> pen(theme.normal_fg);
 
     for (;;)
     {
         if (mq::get(m))
             wm.handle_message(m);
         gui.f2 = ++i;
-        pen.move_to(r.x + (r.w >> 1), r.y + s);
-        pen.set_color(s < 25 ? color::red : color::blue);
-        pen.rel_line_to(20, 0);
-        s = gui.region.scroll(1);
+        uint32_t y = gui.region.scroll(-1);
+
+        for (unsigned c = 0; c < 8; ++c)
+        {
+            pen.move_to(r.x + c * (r.w >> 3), y);
+            pen.set_color(y & (0x7f >> c) ? theme.normal_bg : theme.normal_fg);
+            pen.rel_line_to(r.w >> 4, 0);
+        }
     }
 }
 
