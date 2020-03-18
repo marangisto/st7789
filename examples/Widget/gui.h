@@ -17,7 +17,7 @@ struct sub_gui_t: window_t<DISPLAY>
     sub_gui_t(const theme_t& t)
         : l1(t, "x"), l2(t, "y"), c1(&l1, &l2)
         , i1(t), f1(t), c2(&i1, &f1)
-        , q1(&c1, &c2), b(&q1, t.border_color, 5)
+        , cols(&c1, &c2), b(&cols, t.border_color, 5)
     {
         list<ifocus*> navigation;
 
@@ -44,7 +44,7 @@ struct sub_gui_t: window_t<DISPLAY>
     intbox i1;
     floatbox f1;
     vertical_t<DISPLAY> c2;
-    horizontal_t<DISPLAY> q1;
+    horizontal_t<DISPLAY> cols;
     border_t<DISPLAY> b;
 };
 
@@ -57,16 +57,17 @@ struct gui_t: window_t<DISPLAY>
     typedef valuebox_t<DISPLAY, show_float<2> > floatbox2;
 
     gui_t(const theme_t& t)
-        : l1(t, "foo"), l2(t, "bar"), l3(t, "baz!"), c1(&l1, &l2, &l3)
-        , i1(t), f1(t), f2(t, 0), c2(&i1, &f1, &f2)
-        , q1(&c1, &c2), sub(t)
+        : l1(t, "foo"), l2(t, "bar"), l3(t, "baz!"), l4(t, "scrolling")
+        , c1(&l1, &l2, &l3), i1(t), f1(t), f2(t, 0), c2(&i1, &f1, &f2)
+        , cols(&c1, &c2), region(t), sections(&cols, &region, &l4)
+        , sub(t)
     {
         list<ifocus*> navigation;
 
         navigation.push_back(&i1);
         navigation.push_back(&f1);
 
-        window_t<DISPLAY>::setup(&q1, navigation, t);
+        window_t<DISPLAY>::setup(&sections, navigation, t);
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -81,13 +82,15 @@ struct gui_t: window_t<DISPLAY>
         return window_t<DISPLAY>::handle_message(m);
     }
 
-    label l1, l2, l3;
+    label l1, l2, l3, l4;
     vertical_t<DISPLAY> c1;
     intbox i1;
     floatbox f1;
     floatbox2 f2;
     vertical_t<DISPLAY> c2;
-    horizontal_t<DISPLAY> q1;
+    horizontal_t<DISPLAY> cols;
+    scroll_region_t<DISPLAY> region;
+    vertical_t<DISPLAY> sections;
     sub_gui_t<DISPLAY> sub;
 };
 

@@ -62,13 +62,18 @@ int main()
 
     window_manager wm(&gui);
     message_t m;
-    static uint8_t i = 0;
+    static uint32_t i = 0;
+    rect_t r = gui.region.rect();
+    graphics::pen_t<display> pen(color::red);
 
     for (;;)
     {
         if (mq::get(m))
             wm.handle_message(m);
         gui.f2 = ++i;
+        gui.region.scroll(1);
+        pen.move_to(r.x + (r.w >> 1), r.y + r.h -50);
+        pen.rel_line_to(20, 0);
     }
 }
 
