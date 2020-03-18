@@ -65,15 +65,17 @@ int main()
     static uint32_t i = 0;
     rect_t r = gui.region.rect();
     graphics::pen_t<display> pen(color::red);
+    uint32_t s = 0;
 
     for (;;)
     {
         if (mq::get(m))
             wm.handle_message(m);
         gui.f2 = ++i;
-        gui.region.scroll(1);
-        pen.move_to(r.x + (r.w >> 1), r.y + r.h -50);
+        pen.move_to(r.x + (r.w >> 1), r.y + s);
+        pen.set_color(s < 25 ? color::red : color::blue);
         pen.rel_line_to(20, 0);
+        s = gui.region.scroll(1);
     }
 }
 
