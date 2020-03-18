@@ -395,6 +395,62 @@ public:
 };
 
 template<typename DISPLAY>
+class scroll_region_t: public vertical_t<DISPLAY>
+{
+public:
+    scroll_region_t(const theme_t& theme): m_theme(theme), m_scroll(0) {}
+
+    // iwidget
+
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
+    {
+        w = DISPLAY::width();
+        h = 1;                          // whatever we can get
+        fill_h = false;
+        fill_v = true;
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        m_rect.w = w;
+        m_rect.h = h;
+    }
+
+    virtual void place(pixel_t x, pixel_t y)
+    {
+        m_rect.x = x;
+        m_rect.y = y;
+    }
+
+    virtual void render()
+    {
+        graphics::pen_t<DISPLAY> pen(m_theme.normal_fg);
+
+        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
+        DISPLAY::set_scroll_area(m_rect.y, m_rect.h);
+    }
+
+    // programming interface
+
+    const rect_t& rect() { return m_rect; }
+
+    uint32_t scroll(int n)
+    {
+        m_scroll += n;
+
+        uint32_t s = m_scroll % m_rect.h;
+
+        DISPLAY::scroll(m_rect.y + s);
+        return s;
+    }
+
+private:
+    const theme_t&  m_theme;
+    rect_t          m_rect;
+    uint32_t        m_scroll;
+};
+
+template<typename DISPLAY>
 class window_t: public iwindow
 {
 public:
