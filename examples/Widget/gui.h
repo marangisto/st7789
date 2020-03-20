@@ -59,7 +59,7 @@ struct gui_t: window_t<DISPLAY>
     gui_t(const theme_t& t)
         : l1(t, "foo"), l2(t, "bar"), l3(t, "baz!"), l4(t, "scrolling")
         , c1(&l1, &l2, &l3), i1(t), f1(t), f2(t, 0), c2(&i1, &f1, &f2)
-        , cols(&c1, &c2), region(t), sections(&cols, &region, &l4)
+        , cols(&c1, &c2), region(t.normal_bg), sections(&cols, &region, &l4)
         , sub(t)
     {
         list<ifocus*> navigation;
