@@ -444,6 +444,17 @@ public:
         return s;
     }
 
+    void scroll_off()
+    {
+        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
+
+        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
+        m_scroll = 0;
+        DISPLAY::scroll(0);
+        DISPLAY::set_scroll_area(0, DISPLAY::height());
+    }
+
+
 private:
     const theme_t&  m_theme;
     rect_t          m_rect;
