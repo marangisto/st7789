@@ -34,6 +34,11 @@ static inline color_t interpolate_color(color_t bg, color_t fg, uint16_t x)
         );
 }
 
+static constexpr color_t grey(int brightness)
+{
+    return to_color(brightness, brightness, brightness);
+}
+
 static const color_t alice_blue             = 0xf0f8ff;
 static const color_t antique_white          = 0xfaebd7;
 static const color_t aqua                   = 0x00ffff;
