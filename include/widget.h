@@ -223,6 +223,11 @@ public:
         m_child->render();
     }
 
+    void set_color(color_t color)
+    {
+        m_color = color;
+    }
+
 private:
     iwidget     *m_child;
     rect_t      m_rect;
@@ -489,9 +494,6 @@ public:
 
     virtual void render()
     {
-        graphics::pen_t<DISPLAY> pen(m_bg);
-
-        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
         DISPLAY::set_scroll_area(m_rect.y, m_rect.h);
     }
 
@@ -511,14 +513,17 @@ public:
 
     void scroll_off()
     {
-        graphics::pen_t<DISPLAY> pen(m_bg);
-
-        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
         m_scroll = 0;
         DISPLAY::scroll(0);
         DISPLAY::set_scroll_area(0, DISPLAY::height());
     }
 
+    void clear()
+    {
+        graphics::pen_t<DISPLAY> pen(m_bg);
+
+        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
+    }
 
 private:
     color_t         m_bg;
