@@ -231,6 +231,69 @@ private:
 };
 
 template<typename DISPLAY>
+class filler_t: public iwidget
+{
+public:
+    typedef color::color_t color_t;
+    enum orientation_t { horizontal, vertical };
+
+    filler_t
+        ( orientation_t orientation = horizontal
+        , color_t color = color::black
+        , pixel_t thickness = 1
+        ) : m_orientation(orientation)
+          , m_color(color)
+          , m_thickness(thickness)
+    {
+    }
+
+    // iwidget
+
+    virtual void size(pixel_t& w, bool& fill_h, pixel_t& h, bool& fill_v)
+    {
+        if (m_orientation == horizontal)
+        {
+            w = 0;
+            h = m_thickness;
+            fill_h = true;
+            fill_v = false;
+        }
+        else
+        {
+            w = m_thickness;
+            h = 0;
+            fill_h = false;
+            fill_v = true;
+        }
+    }
+
+    virtual void size(pixel_t w, pixel_t h)
+    {
+        m_rect.w = w;
+        m_rect.h = h;
+    }
+
+    virtual void place(pixel_t x, pixel_t y)
+    {
+        m_rect.x = x;
+        m_rect.y = y;
+    }
+
+    virtual void render()
+    {
+        graphics::pen_t<DISPLAY> pen(m_color);
+
+        pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
+    }
+
+private:
+    orientation_t   m_orientation;
+    color_t         m_color;
+    pixel_t         m_thickness;
+    rect_t          m_rect;
+};
+
+template<typename DISPLAY>
 class vertical_t: public iwidget
 {
 public:
@@ -398,7 +461,9 @@ template<typename DISPLAY>
 class scroll_region_t: public vertical_t<DISPLAY>
 {
 public:
-    scroll_region_t(const theme_t& theme): m_theme(theme), m_scroll(0) {}
+    using color_t = color::color_t;
+
+    scroll_region_t(color_t bg): m_bg(bg), m_scroll(0) {}
 
     // iwidget
 
@@ -424,7 +489,7 @@ public:
 
     virtual void render()
     {
-        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
+        graphics::pen_t<DISPLAY> pen(m_bg);
 
         pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
         DISPLAY::set_scroll_area(m_rect.y, m_rect.h);
@@ -446,7 +511,7 @@ public:
 
     void scroll_off()
     {
-        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
+        graphics::pen_t<DISPLAY> pen(m_bg);
 
         pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
         m_scroll = 0;
@@ -456,7 +521,7 @@ public:
 
 
 private:
-    const theme_t&  m_theme;
+    color_t         m_bg;
     rect_t          m_rect;
     uint32_t        m_scroll;
 };
