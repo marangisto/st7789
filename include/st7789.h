@@ -246,6 +246,7 @@ private:
     {
         dev::write8(x & 0xff);
         dev::write8(x >> 8);
+        dev::wait_idle();
     }
 };
 
