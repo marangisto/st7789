@@ -55,6 +55,12 @@ struct iwindow;
 
 typedef std::variant<unit_t, iwindow*, unsigned, message_t> action_t;
 
+template<action_tag_t T, typename U>
+action_t action(const U& u)
+{
+    return action_t().emplace<T>(u);
+}
+
 struct iwindow
 {
     virtual void render() = 0;
