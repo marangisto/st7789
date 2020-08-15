@@ -379,6 +379,8 @@ public:
             m_child[i]->render();
     }
 
+    uint8_t count() const { return m_count; }
+
 protected:
     void make_fills(pixel_t s)
     {
