@@ -1,8 +1,5 @@
 #pragma once
 
-namespace color
-{
-
 typedef uint32_t color_t;
 
 static inline constexpr color_t to_color(uint8_t r, uint8_t g, uint8_t b)
@@ -39,6 +36,8 @@ static constexpr color_t grey(int brightness)
     return to_color(brightness, brightness, brightness);
 }
 
+namespace color
+{
 static const color_t alice_blue             = 0xf0f8ff;
 static const color_t antique_white          = 0xfaebd7;
 static const color_t aqua                   = 0x00ffff;
@@ -184,6 +183,5 @@ static const color_t white                  = 0xffffff;
 static const color_t white_smoke            = 0xf5f5f5;
 static const color_t yellow                 = 0xffff00;
 static const color_t yellow_green           = 0x9acd32;
-
-} // color
+} // namespace color
 

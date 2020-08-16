@@ -10,7 +10,6 @@
 
 struct theme_t
 {
-    using color_t = color::color_t;
     using font_t = fontlib::font_t;
 
     color_t normal_fg;
@@ -42,8 +41,6 @@ struct iwidget
 
 struct ifocus
 {
-    typedef color::color_t color_t;
-
     virtual void focus(color_t c) = 0;
     virtual void defocus() = 0;
     virtual void edit(int i) = 0;
@@ -78,7 +75,6 @@ class valuebox_t: public iwidget, public ifocus
 {
 public:
     typedef typename SHOW::T T;
-    typedef color::color_t color_t;
     typedef fontlib::font_t font_t;
 
     valuebox_t
@@ -125,7 +121,7 @@ public:
         const char *s = SHOW::show(m_value);
 
         text::text_renderer_t<DISPLAY> tr(m_theme.font, m_theme.normal_fg, m_theme.normal_bg, true);
-        graphics::pen_t<DISPLAY> pen(m_theme.normal_bg);
+        pen_t<DISPLAY> pen(m_theme.normal_bg);
         uint16_t tw, th;
 
         tr.bounding_box(s, tw, th);
@@ -150,7 +146,7 @@ public:
         tr.write(s);
 
         if (m_frame != m_theme.normal_bg)
-            graphics::pen_t<DISPLAY>(m_frame).rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
+            pen_t<DISPLAY>(m_frame).rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
     }
 
     // ifocus
@@ -184,8 +180,6 @@ template<typename DISPLAY>
 class border_t: public iwidget
 {
 public:
-    typedef color::color_t color_t;
-
     border_t(iwidget *child, color_t color = color::black, pixel_t thickness = 1)
     {
         m_child = child;
@@ -222,7 +216,7 @@ public:
 
     virtual void render()
     {
-        graphics::pen_t<DISPLAY> pen(m_color);
+        pen_t<DISPLAY> pen(m_color);
 
         for (pixel_t i = 0; i < m_thickness; ++i)
             pen.rectangle(m_rect.x + i, m_rect.y + i, m_rect.w - (i << 1), m_rect.h - (i << 1));
@@ -245,7 +239,6 @@ template<typename DISPLAY>
 class filler_t: public iwidget
 {
 public:
-    typedef color::color_t color_t;
     enum orientation_t { horizontal, vertical };
 
     filler_t
@@ -292,7 +285,7 @@ public:
 
     virtual void render()
     {
-        graphics::pen_t<DISPLAY> pen(m_color);
+        pen_t<DISPLAY> pen(m_color);
 
         pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
     }
@@ -474,8 +467,6 @@ template<typename DISPLAY>
 class scroll_region_t: public vertical_t<DISPLAY>
 {
 public:
-    using color_t = color::color_t;
-
     scroll_region_t(color_t bg): m_bg(bg), m_scroll(0) {}
 
     // iwidget
@@ -528,7 +519,7 @@ public:
 
     void clear()
     {
-        graphics::pen_t<DISPLAY> pen(m_bg);
+        pen_t<DISPLAY> pen(m_bg);
 
         pen.fill_rectangle(m_rect.x, m_rect.y, m_rect.w, m_rect.h);
     }
@@ -543,8 +534,6 @@ template<typename DISPLAY>
 class window_t: public iwindow
 {
 public:
-    typedef color::color_t color_t;
-
     static rect_t full_size() { return rect_t(0, 0, DISPLAY::width(), DISPLAY::height()); }
 
     window_t() {}

@@ -10,12 +10,6 @@
 #include <gpio.h>
 #include "color.h"
 
-namespace st7789
-{
-
-using namespace hal;
-using namespace color;
-
 namespace internal
 {
     // swap byte order for 16-bit color scheme
@@ -45,18 +39,18 @@ namespace internal
 
 template
     < uint8_t           SPI     // SPI peripheral number
-    , gpio::gpio_pin_t  SCL     // SPI clock
-    , gpio::gpio_pin_t  SDA     // SPI data (bidirectional)
-    , gpio::gpio_pin_t  DC      // data / command select
-    , gpio::gpio_pin_t  RS      // reset
+    , pin_t  SCL     // SPI clock
+    , pin_t  SDA     // SPI data (bidirectional)
+    , pin_t  DC      // data / command select
+    , pin_t  RS      // reset
     >
 class st7789_t
 {
 public:
-    template<spi::spi_clock_divider_t PRESCALE = spi::fpclk_256>
+    template<spi_clock_divider_t PRESCALE = fpclk_256>
     static void setup(color_t color = 0)
     {
-        dev::template setup<spi::mode_3, spi::msb_first, PRESCALE, spi::high_speed>();
+        dev::template setup<mode_3, msb_first, PRESCALE, high_speed>();
 
         res::setup();                               // display controller reset
         dcx::setup();                               // data / command selection
@@ -149,9 +143,9 @@ public:
     }
 
 private:
-    typedef spi::spi_t<SPI, SCL, SDA>   dev;
-    typedef gpio::output_t<DC>          dcx;
-    typedef gpio::output_t<RS>          res;
+    typedef spi_t<SPI, SCL, SDA>    dev;
+    typedef output_t<DC>            dcx;
+    typedef output_t<RS>            res;
 
     static const uint16_t TFT_WIDTH  = 240;
     static const uint16_t TFT_HEIGHT = 240;
@@ -249,6 +243,4 @@ private:
         dev::wait_idle();
     }
 };
-
-} // namespace st7789
 

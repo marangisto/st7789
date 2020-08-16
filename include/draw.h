@@ -2,11 +2,6 @@
 
 #include "color.h"
 
-namespace graphics
-{
-
-using namespace color;
-
 template<typename DISPLAY>
 struct pen_t
 {
@@ -138,6 +133,4 @@ private:
     color_t     m_c;
     int16_t     m_x, m_y;
 };
-
-} // namespace graphics
 
