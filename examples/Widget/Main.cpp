@@ -1,11 +1,11 @@
+#include <button.h>
 #include <timer.h>
 #include <fifo.h>
-#include <button.h>
 #include "../display.h"
 #include "gui.h"
 
-typedef hal::timer::timer_t<6> aux;
-typedef hal::timer::encoder_t<3, PA6, PA7> enc;
+typedef tim_t<6> aux;
+typedef encoder_t<3, PA6, PA7> enc;
 typedef button_t<PB6> btn0;
 typedef button_t<PA11> btn1;
 typedef button_t<PC9> btn2;
@@ -14,7 +14,7 @@ typedef fifo_t<message_t, 0, 8> mq;
 
 template<> void handler<interrupt::TIM6_DAC>()
 {
-    aux::clear_uif();
+    aux::clear_update_interrupt_flag();
 
     static int16_t enc_last_count = 0;
     int16_t c = static_cast<int16_t>(enc::count()) >> 1;
@@ -52,9 +52,10 @@ int main()
     btn2::setup<pull_up>();
     btn3::setup<pull_up>();
     aux::setup(48-1, 1000-1); // 1kHz
-    aux::update_interrupt_enable();
-    hal::nvic<interrupt::TIM6_DAC>::enable();
+    aux::enable_update_interrupt();
+    interrupt::set<interrupt::TIM6_DAC>();
     display::setup<display_spi_prescale>(dark_red);
+    interrupt::enable();
 
     theme_t theme = { white, slate_gray, blue, yellow, orange_red, fontlib::cmunss_20, false };
 
@@ -64,7 +65,7 @@ int main()
     message_t m;
     static uint32_t i = 0;
     rect_t r = gui.region.rect();
-    graphics::pen_t<display> pen(theme.normal_fg);
+    pen_t<display> pen(theme.normal_fg);
 
     for (;;)
     {

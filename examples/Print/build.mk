@@ -1,3 +1,4 @@
 BASE_DIR=../../..
-LIBS=hal st7789 fontlib
-MCU=STM32F103
+LIBS=st7789 fontlib corona
+MCU=STM32F051R8Tx
+DEFS=BEATS

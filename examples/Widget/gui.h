@@ -4,7 +4,6 @@
 
 using namespace text;
 using namespace color;
-using namespace graphics;
 using namespace fontlib;
 
 template<typename DISPLAY>

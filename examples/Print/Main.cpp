@@ -1,10 +1,8 @@
-#include "../display.h"
-#include <stdlib.h>
-#include <cstdio>
 #include <gpio.h>
+#include <textio.h>
 #include <text.h>
+#include "../display.h"
 
-using namespace gpio;
 using namespace fontlib;
 using namespace text;
 

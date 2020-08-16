@@ -4,13 +4,9 @@
 //
 ////
 
-#include "../display.h"
 #include <gpio.h>
 #include <draw.h>
-
-using namespace gpio;
-using namespace color;
-using namespace graphics;
+#include "../display.h"
 
 static void squares(color_t bg, color_t fg)
 {

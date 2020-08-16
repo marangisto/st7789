@@ -4,11 +4,10 @@
 //
 ////
 
-#include "../display.h"
 #include <gpio.h>
 #include <text.h>
+#include "../display.h"
 
-using namespace gpio;
 using namespace fontlib;
 using namespace text;
 
