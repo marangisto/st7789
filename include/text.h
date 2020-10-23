@@ -24,14 +24,32 @@ public:
         , color_t fg = color::white
         , color_t bg = color::black
         , bool pad = false
-        ) : m_font(font)
+        ) : m_font(&font)
           , m_fg(fg)
           , m_bg(bg)
           , m_c(0)
-          , m_r(m_font.line_spacing() - 1)
+          , m_r(m_font->line_spacing() - 1)
           , m_scroll(0)
           , m_pad(pad)
     {
+    }
+
+    text_renderer_t(): m_font(0) {}
+
+    void setup
+        ( const fontlib::font_t& font
+        , color_t fg = color::white
+        , color_t bg = color::black
+        , bool pad = false
+        )
+    {
+        m_font = &font;
+        m_fg = fg;
+        m_bg = bg;
+        m_c = 0;
+        m_r = m_font->line_spacing() - 1;
+        m_scroll = 0;
+        m_pad = pad;
     }
 
     void bounding_box(const char *s, uint16_t& w, uint16_t& h) const
@@ -42,27 +60,27 @@ public:
 
         while ((c = *s++) != 0)
         {
-            const fontlib::glyph_t *g = fontlib::get_glyph(m_font, c);
+            const fontlib::glyph_t *g = fontlib::get_glyph(*m_font, c);
 
             w += g->width + std::max<int16_t>(0, g->offset_h);
         }
 
-        h = 1 + m_font.max_y - m_font.min_y;
+        h = 1 + m_font->max_y - m_font->min_y;
     }
 
     uint16_t text_height() const
     {
-        return m_font.height;
+        return m_font->height;
     }
 
     uint16_t line_spacing() const
     {
-        return m_font.line_spacing();
+        return m_font->line_spacing();
     }
 
     uint16_t width_of(char ch) const
     {
-        const fontlib::glyph_t *g = fontlib::get_glyph(m_font, ch);
+        const fontlib::glyph_t *g = fontlib::get_glyph(*m_font, ch);
 
         return g->offset_h + g->width;
     }
@@ -85,7 +103,7 @@ public:
     void clear_line()
     {
         uint16_t w = DISPLAY::width();
-        uint16_t h = m_font.height, extra = 3;
+        uint16_t h = m_font->height, extra = 3;
 
         DISPLAY::set_col_addr(0, w - 1);
         DISPLAY::set_row_addr(m_r - (h - 1), m_r + extra);
@@ -99,7 +117,7 @@ public:
 
     void write(char ch)
     {
-        const fontlib::glyph_t *g = fontlib::get_glyph(m_font, ch);
+        const fontlib::glyph_t *g = fontlib::get_glyph(*m_font, ch);
 
         if (!g)         // bail out if we don't have a glyph
             return;
@@ -121,24 +139,24 @@ public:
 
         if (m_pad)
         {
-            DISPLAY::set_row_addr(m_r + m_font.min_y, r0 - 1);
+            DISPLAY::set_row_addr(m_r + m_font->min_y, r0 - 1);
             DISPLAY::start();
-            int16_t nr = g->offset_v - m_font.min_y;
+            int16_t nr = g->offset_v - m_font->min_y;
             int16_t n = w * nr;
             for (uint16_t i = 0; i < n; ++i)
                 DISPLAY::write(m_bg);
 
-            DISPLAY::set_row_addr(r1, m_r + m_font.max_y);
+            DISPLAY::set_row_addr(r1, m_r + m_font->max_y);
             DISPLAY::start();
-            int16_t mr = m_font.max_y - g->offset_v - h + 1;
+            int16_t mr = m_font->max_y - g->offset_v - h + 1;
             int16_t m = w * mr;
             for (uint16_t i = 0; i < m; ++i)
                 DISPLAY::write(m_bg);
 
             DISPLAY::set_col_addr(m_c, m_c + g->offset_h - 1);
-            DISPLAY::set_row_addr(m_r + m_font.min_y, m_r + m_font.max_y);
+            DISPLAY::set_row_addr(m_r + m_font->min_y, m_r + m_font->max_y);
             DISPLAY::start();
-            int16_t o = std::max<int16_t>(0, g->offset_h) * (1 + m_font.max_y - m_font.min_y);
+            int16_t o = std::max<int16_t>(0, g->offset_h) * (1 + m_font->max_y - m_font->min_y);
             for (uint16_t i = 0; i < o; ++i)
                 DISPLAY::write(m_bg);
         }
@@ -157,7 +175,7 @@ public:
         write(s);
         m_c = 0;
 
-        uint16_t ls = m_font.line_spacing();
+        uint16_t ls = m_font->line_spacing();
 
         if (m_r + ls < DISPLAY::height())
             m_r += ls;
@@ -173,7 +191,7 @@ public:
     }
 
 private:
-    const fontlib::font_t&  m_font;
+    const fontlib::font_t   *m_font;
     color_t                 m_fg;
     color_t                 m_bg;
     uint16_t                m_c;
@@ -181,6 +199,47 @@ private:
     uint16_t                m_scroll;
     bool                    m_pad;
 };
+
+// quick and dirty static version for use with printf<WRITER>()
+
+template<typename DISPLAY>
+class console_t
+{
+public:
+    static void setup(const fontlib::font_t& font, color_t fg, color_t bg)
+    {
+        m_bg = bg;
+        m_font = font;
+        m_txr.setup(m_font, fg, bg, true);
+    };
+
+    static void clear()
+    {
+        DISPLAY::clear(m_bg);
+    }
+
+    static void write(char c)
+    {
+        if (c == '\n')
+            m_txr.writeln("");
+        else
+            m_txr.write(c);
+    }
+
+private:
+    static color_t                  m_bg;
+    static fontlib::font_t          m_font;
+    static text_renderer_t<DISPLAY> m_txr;
+};
+
+template<typename DISPLAY>
+color_t console_t<DISPLAY>::m_bg;
+
+template<typename DISPLAY>
+fontlib::font_t console_t<DISPLAY>::m_font;
+
+template<typename DISPLAY>
+text_renderer_t<DISPLAY> console_t<DISPLAY>::m_txr;
 
 } // namespace text
 
