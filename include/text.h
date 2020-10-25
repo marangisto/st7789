@@ -89,10 +89,10 @@ public:
         return w;
     }
 
-    void set_pos(uint16_t c, uint16_t r)
+    void set_pos(uint16_t x, uint16_t y)
     {
-        m_c = c;
-        m_r = r;
+        m_c = x;
+        m_r = y;
     }
 
     void clear_line()
@@ -212,6 +212,12 @@ public:
     static void clear()
     {
         DISPLAY::clear(m_bg);
+        set_pos(0, 0);
+    }
+
+    static void set_pos(uint16_t r, uint16_t c)
+    {
+        m_txr.set_pos(c * m_font->max_w, (r + 1) * m_font->line_spacing());
     }
 
     static void write(const char *s)
