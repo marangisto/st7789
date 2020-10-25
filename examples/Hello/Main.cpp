@@ -29,7 +29,6 @@ static const char *lines[] =
 int main()
 {
     display::setup<display_spi_prescale>();
-    display::set_scroll_area(0, 240);       // FIXME: should be in driver
     console::setup(fontlib::cmuntx_20, color::green, color::black);
     console::clear();
 

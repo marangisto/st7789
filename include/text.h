@@ -24,26 +24,21 @@ public:
         , color_t fg = color::white
         , color_t bg = color::black
         , bool pad = false
-        ) : m_font(&font)
-          , m_fg(fg)
-          , m_bg(bg)
-          , m_c(0)
-          , m_r(m_font->line_spacing() - 1)
-          , m_scroll(0)
-          , m_pad(pad)
+        )
     {
+        setup(&font, fg, bg, pad);
     }
 
     text_renderer_t(): m_font(0) {}
 
     void setup
-        ( const fontlib::font_t& font
+        ( const fontlib::font_t *font
         , color_t fg = color::white
         , color_t bg = color::black
         , bool pad = false
         )
     {
-        m_font = &font;
+        m_font = font;
         m_fg = fg;
         m_bg = bg;
         m_c = 0;
@@ -206,16 +201,23 @@ template<typename DISPLAY>
 class console_t
 {
 public:
-    static void setup(const fontlib::font_t& font, color_t fg, color_t bg)
+    static void setup(const fontlib::font_t *font, color_t fg, color_t bg)
     {
         m_bg = bg;
         m_font = font;
         m_txr.setup(m_font, fg, bg, true);
+        DISPLAY::set_scroll_area(0, DISPLAY::height());
     };
 
     static void clear()
     {
         DISPLAY::clear(m_bg);
+    }
+
+    static void write(const char *s)
+    {
+        while (*s)
+            write(*s++);
     }
 
     static void write(char c)
@@ -228,7 +230,7 @@ public:
 
 private:
     static color_t                  m_bg;
-    static fontlib::font_t          m_font;
+    static const fontlib::font_t    *m_font;
     static text_renderer_t<DISPLAY> m_txr;
 };
 
@@ -236,7 +238,7 @@ template<typename DISPLAY>
 color_t console_t<DISPLAY>::m_bg;
 
 template<typename DISPLAY>
-fontlib::font_t console_t<DISPLAY>::m_font;
+const fontlib::font_t *console_t<DISPLAY>::m_font = 0;
 
 template<typename DISPLAY>
 text_renderer_t<DISPLAY> console_t<DISPLAY>::m_txr;
