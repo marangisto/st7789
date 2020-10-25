@@ -201,10 +201,10 @@ template<typename DISPLAY>
 class console_t
 {
 public:
-    static void setup(const fontlib::font_t *font, color_t fg, color_t bg)
+    static void setup(const fontlib::font_t& font, color_t fg, color_t bg)
     {
         m_bg = bg;
-        m_font = font;
+        m_font = &font;
         m_txr.setup(m_font, fg, bg, true);
         DISPLAY::set_scroll_area(0, DISPLAY::height());
     };
