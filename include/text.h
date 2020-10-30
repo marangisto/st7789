@@ -95,6 +95,12 @@ public:
         m_r = y;
     }
 
+    void get_pos(uint16_t& x, uint16_t& y)
+    {
+        x = m_c;
+        y = m_r;
+    }
+
     void clear_line()
     {
         uint16_t w = DISPLAY::width();
@@ -218,6 +224,13 @@ public:
     static void set_pos(uint16_t r, uint16_t c)
     {
         m_txr.set_pos(c * m_font->max_w, (r + 1) * m_font->line_spacing());
+    }
+
+    static void get_pos(uint16_t& r, uint16_t& c)
+    {
+        m_txr.get_pos(c, r);
+        c = c / m_font->max_w;
+        r = (r / m_font->line_spacing()) - 1;
     }
 
     static void write(const char *s)
